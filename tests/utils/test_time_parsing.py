@@ -8,8 +8,8 @@ from src.utils.time_parsing import (
     get_title_time,
 )
 
-
-class TestConvertNumericTimeToYt(unittest.TestCase):
+# TODO: test generate_time_phrases
+class TestTimeParsing(unittest.TestCase):
     def test_convert_numeric_time_to_yt(self):
         dicts = [
             {"input": "01:22:35", "expected_output": "1h22m35s"},
@@ -32,8 +32,6 @@ class TestConvertNumericTimeToYt(unittest.TestCase):
         # GOTCHA: test will pass regardless of this assertion, if indented within assertRaises context manager
         self.assertIn(f"Unparsable timestamp '{timestamp}'", str(context.exception))
 
-
-class TestGetTitleTime(unittest.TestCase):
     def test_get_title_time(self):
         dicts = [
             {"input": "Starts at 01:22:35", "expected_output": "1h22m35s"},

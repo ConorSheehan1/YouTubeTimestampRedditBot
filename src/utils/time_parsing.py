@@ -1,10 +1,28 @@
 # Standard Library
 import re
-from typing import Union
+from typing import Generator, List, Union
+
+# Third party
+import inflect
+
+
+p = inflect.engine()
 
 
 class TimestampParseError(Exception):
     pass
+
+
+def generate_time_phrases(
+    units: List[str], limit: int = 60
+) -> Generator[str, None, None]:
+    """
+    returns: strings like 'one second', 'two seconds' etc.
+    """
+    for unit in units:
+        yield f"one {unit}"
+        for i in range(2, limit):
+            yield f"{p.number_to_words(i)} {p.plural(unit)}"
 
 
 def convert_numeric_time_to_yt(timestamp: str) -> str:

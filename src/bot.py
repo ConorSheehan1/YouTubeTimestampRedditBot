@@ -1,33 +1,22 @@
 # Standard Library
 import os
 import re
-from typing import Generator, List
 
 # Third party
-import inflect
 import praw
 
 # YouTubeTimestampRedditBot
 from utils.loggers import setup_and_get_logger
-from utils.time_parsing import TimestampParseError, get_title_time
+from utils.time_parsing import (
+    TimestampParseError,
+    get_title_time,
+    generate_time_phrases,
+)
 from utils.youtube import is_youtube_url_without_timestamp, add_timestamp_to_youtube_url
 
 __version__ = "0.1.0"
 time_units = ["second", "minute"]
-p = inflect.engine()
 logger = setup_and_get_logger("bot.py")
-
-
-def generate_time_phrases(
-    units: List[str], limit: int = 60
-) -> Generator[str, None, None]:
-    """
-    returns: strings like 'one second', 'two seconds' etc.
-    """
-    for unit in units:
-        yield f"one {unit}"
-        for i in range(2, limit):
-            yield f"{p.number_to_words(i)} {p.plural(unit)}"
 
 
 class Bot:
@@ -70,10 +59,6 @@ You can add a timestamp to any YouTub link using the `t` parameter. e.g.{'  '}
                     continue  # go to next submission
 
                 if timestamp:
-                    # Standard Library
-                    import pdb
-
-                    pdb.set_trace()
                     new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
                     # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
                     logger.info(
