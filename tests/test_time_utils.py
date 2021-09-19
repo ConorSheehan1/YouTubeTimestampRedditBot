@@ -1,0 +1,56 @@
+# Standard Library
+import unittest
+from unittest.mock import call, patch
+
+# YouTubeTimestampRedditBot
+from src.time_utils import (
+    TimestampParseError,
+    convert_numeric_time_to_yt,
+    get_title_time,
+)
+
+
+class TestConvertNumericTimeToYt(unittest.TestCase):
+    def test_convert_numeric_time_to_yt(self):
+        dicts = [
+            {"input": "01:22:35", "expected_output": "1h22m35s"},
+            {"input": "12:34", "expected_output": "12m34s"},
+            {"input": "12", "expected_output": "12s"},
+            {"input": "0012", "expected_output": "12s"},
+            {"input": "00:12", "expected_output": "0m12s"},
+        ]
+
+        for (i, d) in enumerate(dicts):
+            with self.subTest(i=i):
+                assert convert_numeric_time_to_yt(d["input"]) == d["expected_output"]
+
+    def test_convert_numeric_time_to_yt_error(self):
+        timestamp = "1:2:3:4"
+        with self.assertRaises(TimestampParseError) as context:
+            # only allow up to hh:mm:ss, anything above is probably not valid time for yt
+            convert_numeric_time_to_yt(timestamp)
+
+        # GOTCHA: test will pass regardless of this assertion, if indented within assertRaises context manager
+        self.assertIn(f"Unparsable timestamp '{timestamp}'", str(context.exception))
+
+
+class TestGetTitleTime(unittest.TestCase):
+    def test_get_title_time(self):
+        dicts = [
+            {"input": "Starts at 01:22:35", "expected_output": "1h22m35s"},
+            {"input": "Cool thing at 12:34", "expected_output": "12m34s"},
+            {"input": "Cool thing at 60:34", "expected_output": False},
+            {
+                "input": "Around 12 seconds something happens",
+                "expected_output": False,
+            },  # will be handled with time phrases
+            {"input": "This has no numbers in it", "expected_output": False},
+            {
+                "input": "This has numbers that don't look like time 123.456",
+                "expected_output": False,
+            },
+        ]
+
+        for (i, d) in enumerate(dicts):
+            with self.subTest(i=i):
+                assert get_title_time(d["input"]) == d["expected_output"]

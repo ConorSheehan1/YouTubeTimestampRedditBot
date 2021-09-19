@@ -1,19 +1,21 @@
-import logging
+# Standard Library
 import os
 import re
 from typing import Generator, List
 
+# Third party
 import inflect
 import praw
 from furl import furl
 
+# YouTubeTimestampRedditBot
+from logging_utils import setup_and_get_logger
+from time_utils import TimestampParseError, get_title_time
+
 __version__ = "0.1.0"
 time_units = ["second", "minute"]
 p = inflect.engine()
-logger = logging.getLogger("bot.py")
-logging.basicConfig()
-# log everything, not just warnings
-logging.root.setLevel(logging.NOTSET)
+logger = setup_and_get_logger("bot.py")
 
 
 def generate_time_phrases(
@@ -26,10 +28,6 @@ def generate_time_phrases(
         yield f"one {unit}"
         for i in range(2, limit):
             yield f"{p.number_to_words(i)} {p.plural(unit)}"
-
-
-class TimestampParseError(Exception):
-    pass
 
 
 class Bot:
@@ -58,48 +56,6 @@ class Bot:
         # https://stackoverflow.com/a/24791840/6305204
         return furl(url).add({"t": timestamp}).url
 
-    def convert_numeric_time_to_yt(self, timestamp: str) -> str:
-        """
-        e.g. arg: 01:22:35
-        returns:  01h22m35s
-        """
-        time_components = timestamp.split(":")
-        if len(time_components) > 3:
-            raise TimestampParseError(f"Unparsable timestamp {timestamp}")
-        yt_format_tuples = list(zip(time_components[::-1], ["s", "m", "h"]))
-        yt_format_strings = ["".join(v) for v in yt_format_tuples]
-        return "".join(yt_format_strings[::-1])
-
-    def get_title_time(self, title: str) -> str:
-        # basic time reference MM:SS e.g. 1:23
-        # TODO: allow HH:MM:SS?
-        # TODO: fix false positive 24:23 matches on 4:23, which is valid, but 24:anything is not valid
-        basic_time_regex = r"(([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
-        numeric_timestamp = re.search(basic_time_regex, title)
-        if numeric_timestamp:
-            parsed_timestamp = self.convert_numeric_time_to_yt(
-                numeric_timestamp.group()
-            )
-            logger.info(
-                f"""title:\t\t\t{title}
-    raw matched timestamp:\t{numeric_timestamp.group()}
-    parsed timestamp:\t\t{parsed_timestamp}
-    """
-            )
-            return parsed_timestamp
-        # # only need to check for singular version, since it's always a substring.
-        # # e.g. 'thirty seconds' and 'one second' both contain 'second'.
-        # if any([unit in title for unit in self.time_units]):
-        #     for time_phrase in self.time_phrase:
-        #         if time_phrase in title:
-        #             logger.info(f"""
-        #             title: {title}
-        #             raw matched timestamp: {time_phrase}
-        #             parsed timestamp: {time_phrase}
-        #             """) # TODO: parse time_phrases, e.g. https://github.com/akshaynagpal/w2n
-        #             return time_phrase
-        return False
-
     def comment(self, new_url: str) -> str:
         # TODO: better way of keeping 2 spaces for markdown formatting?
         return f"""
@@ -112,14 +68,40 @@ You can add a timestamp to any YouTub link using the `t` parameter. e.g.{'  '}
 
     def main(self):
         self.login()
-        # for submission in reddit.subreddit("cringe").new(limit=10):
-        #     print(
-        #         submission.title,
-        #         submission.url,
-        #         self.is_youtube_url_without_timestamp(submission.url),
-        #         self.get_title_time(submission.title),
-        #     )
+        visited = 0  # doesn't work with stream
+        # for submission in self.r.subreddit('all').hot(limit=1000):
+        for submission in self.r.subreddit("all").stream.submissions():
+            logger.info(
+                {"visited": visited, "title": submission.title, "url": submission.url}
+            )
+            if self.is_youtube_url_without_timestamp(submission.url):
+                try:
+                    timestamp = get_title_time(submission.title)
+                except TimestampParseError:
+                    logger.error(
+                        f"Failed to parse title {submission.title}. Error:\n{e}"
+                    )
+                    continue  # go to next submission
 
+                if timestamp:
+                    # Standard Library
+                    import pdb
+
+                    pdb.set_trace()
+                    new_url = self.add_timestamp_to_youtube_url(
+                        submission.url, timestamp
+                    )
+                    # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
+                    logger.info(
+                        f"""found one!
+reddit_url: {self.r.config.reddit_url}{submission.permalink}
+title: {submission.title}
+url: {submission.url}
+"""
+                    )
+                    print(self.comment(new_url))
+
+    def test_specific(self):
         submission = self.r.submission(
             url="https://www.reddit.com/r/cringe/comments/pfliwd/starting_at_like_314_this_guy_attempts_some_of/"
         )
