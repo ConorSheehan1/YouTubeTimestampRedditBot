@@ -6,11 +6,11 @@ from typing import Generator, List
 # Third party
 import inflect
 import praw
-from furl import furl
 
 # YouTubeTimestampRedditBot
-from logging_utils import setup_and_get_logger
-from time_utils import TimestampParseError, get_title_time
+from utils.loggers import setup_and_get_logger
+from utils.time_parsing import TimestampParseError, get_title_time
+from utils.youtube import is_youtube_url_without_timestamp, add_timestamp_to_youtube_url
 
 __version__ = "0.1.0"
 time_units = ["second", "minute"]
@@ -42,20 +42,6 @@ class Bot:
             user_agent=f"<console:YouTubeTimestampBot:{__version__}>",
         )
 
-    def is_youtube_url_without_timestamp(self, url: str) -> bool:
-        # is the url a youtube url https://regexr.com/3dj5t
-        yt_regex = r"((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))"
-        if not re.search(yt_regex, url):
-            return False
-        # if ?t= or &t= is in the url, it already has a timestamp
-        if any(t in url for t in ["?t=", "&t="]):
-            return False
-        return True
-
-    def add_timestamp_to_youtube_url(self, url: str, timestamp: str) -> str:
-        # https://stackoverflow.com/a/24791840/6305204
-        return furl(url).add({"t": timestamp}).url
-
     def comment(self, new_url: str) -> str:
         # TODO: better way of keeping 2 spaces for markdown formatting?
         return f"""
@@ -74,7 +60,7 @@ You can add a timestamp to any YouTub link using the `t` parameter. e.g.{'  '}
             logger.info(
                 {"visited": visited, "title": submission.title, "url": submission.url}
             )
-            if self.is_youtube_url_without_timestamp(submission.url):
+            if is_youtube_url_without_timestamp(submission.url):
                 try:
                     timestamp = get_title_time(submission.title)
                 except TimestampParseError:
@@ -88,9 +74,7 @@ You can add a timestamp to any YouTub link using the `t` parameter. e.g.{'  '}
                     import pdb
 
                     pdb.set_trace()
-                    new_url = self.add_timestamp_to_youtube_url(
-                        submission.url, timestamp
-                    )
+                    new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
                     # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
                     logger.info(
                         f"""found one!
@@ -106,14 +90,14 @@ url: {submission.url}
             url="https://www.reddit.com/r/cringe/comments/pfliwd/starting_at_like_314_this_guy_attempts_some_of/"
         )
         # print(submission.title, submission.url, self.is_youtube_url_without_timestamp(submission.url), self.get_title_time(submission.title))
-        if self.is_youtube_url_without_timestamp(submission.url):
+        if is_youtube_url_without_timestamp(submission.url):
             try:
                 timestamp = self.get_title_time(submission.title)
             except TimestampParseError:
                 logger.error(f"Failed to parse title {submission.title}")
 
             if timestamp:
-                new_url = self.add_timestamp_to_youtube_url(submission.url, timestamp)
+                new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
                 print(self.comment(new_url))
 
 

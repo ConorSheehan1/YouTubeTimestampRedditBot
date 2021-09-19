@@ -1,9 +1,8 @@
 # Standard Library
 import unittest
-from unittest.mock import call, patch
 
 # YouTubeTimestampRedditBot
-from src.time_utils import (
+from src.utils.time_parsing import (
     TimestampParseError,
     convert_numeric_time_to_yt,
     get_title_time,
