@@ -30,6 +30,7 @@ ci_isort = "isort --check --diff"
 isort = 'isort -y'
 lint = "black ."
 tests = "python -m pytest tests"
+mypy = "mypy --ignore-missing-imports src"
 
 [tool.isort]
 import_heading_stdlib = "Standard Library"

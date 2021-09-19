@@ -1,5 +1,6 @@
 # Standard Library
 import re
+from typing import Union
 
 
 class TimestampParseError(Exception):
@@ -20,7 +21,7 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
     return "".join(yt_format_strings[::-1])
 
 
-def get_title_time(title: str) -> str:
+def get_title_time(title: str) -> Union[str, bool]:
     # TODO: fix false positive 24:23 matches on 4:23, which is valid, but 24:anything is not valid
     # TODO: handle r/Documentaries format of including length of video in title
     # https://stackoverflow.com/a/7536768/6305204
