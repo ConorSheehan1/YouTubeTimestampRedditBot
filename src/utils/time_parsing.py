@@ -40,8 +40,6 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
 
 
 def get_title_time(title: str) -> Union[str, bool]:
-    # TODO: fix false positive 24:23 matches on 4:23, which is valid, but 24:anything is not valid
-    # TODO: handle r/Documentaries format of including length of video in title
     # https://stackoverflow.com/a/7536768/6305204
     # https://stackoverflow.com/a/8318367/6305204
 
@@ -65,10 +63,5 @@ def get_title_time(title: str) -> Union[str, bool]:
     # if any([unit in title for unit in self.time_units]):
     #     for time_phrase in self.time_phrase:
     #         if time_phrase in title:
-    #             logger.info(f"""
-    #             title: {title}
-    #             raw matched timestamp: {time_phrase}
-    #             parsed timestamp: {time_phrase}
-    #             """) # TODO: parse time_phrases, e.g. https://github.com/akshaynagpal/w2n
     #             return time_phrase
     return False

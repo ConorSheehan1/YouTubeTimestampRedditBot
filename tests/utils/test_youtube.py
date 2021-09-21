@@ -7,6 +7,7 @@ from src.utils.youtube import is_youtube_url_without_timestamp
 class Youtube(unittest.TestCase):
     def test_is_youtube_url_without_timestamp(self):
         dicts = [
+            # no timestamps
             {"input": "https://youtube.com/asdf", "expected_output": True},
             {"input": "wwww.youtube.com/asdf", "expected_output": True},
             {"input": "wwww.youtu.be/asdf", "expected_output": True},

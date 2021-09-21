@@ -1,10 +1,10 @@
 # Standard Library
 import logging
+import os
 
 
 def setup_and_get_logger(name):
     logger = logging.getLogger(name)
-    logging.basicConfig()
-    # log everything, not just warnings
-    logging.root.setLevel(logging.NOTSET)
+    LOGLEVEL = os.environ.get("log_level", "INFO").upper()
+    logging.basicConfig(level=LOGLEVEL)
     return logger

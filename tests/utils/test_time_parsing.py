@@ -37,15 +37,22 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "Starts at 01:22:35", "expected_output": "1h22m35s"},
             {"input": "Cool thing at 12:34", "expected_output": "12m34s"},
             {"input": "Cool thing at 60:34", "expected_output": False},
-            {
-                "input": "Around 12 seconds something happens",
-                "expected_output": False,
-            },  # will be handled with time phrases
+            {"input": "Cool thing at 24:34", "expected_output": False},
+            {"input": "Not a time [34m]", "expected_output": False},
             {"input": "This has no numbers in it", "expected_output": False},
             {
                 "input": "This has numbers that don't look like time 123.456",
                 "expected_output": False,
             },
+            {
+                "input": "Around 12 seconds something happens",
+                "expected_output": False,
+            },  # will be handled with time phrases
+            {
+                "input": "Documentary [00:12:34]",
+                "expected_output": False,
+            },  # r/documentaries format
+            {"input": "Documentary at 01:12:34", "expected_output": "1h12m34s"},
         ]
 
         for (i, d) in enumerate(dicts):

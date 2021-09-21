@@ -1,6 +1,7 @@
 # Standard Library
 import os
 import re
+import time
 
 # Third party
 import praw
@@ -23,68 +24,82 @@ class Bot:
     def __init__(self, time_units, time_limit: int = 60):
         self.time_units = time_units
         self.time_phrases = list(generate_time_phrases(time_units, time_limit))
+        # https://www.reddit.com/wiki/bottiquette omit /r/suicidewatch and /r/depression
+        self.blacklist = ["suicidewatch", "depression"]
 
     def login(self):
         self.r = praw.Reddit(
             client_id=os.getenv("client_id"),
             client_secret=os.getenv("client_secret"),
             user_agent=f"<console:YouTubeTimestampBot:{__version__}>",
+            username="YouTubeTimestampBot",
+            password=os.getenv("password")  # TODO: switch to oauth
+            # https://www.reddit.com/r/GoldTesting/comments/3cm1p8/how_to_make_your_bot_use_oauth2/
         )
 
-    def comment(self, new_url: str) -> str:
+    def generate_comment(self, new_url: str) -> str:
         # TODO: better way of keeping 2 spaces for markdown formatting?
         return f"""
 Link that starts at the time OP mentioned: {new_url}
 ***********************{'  '}
-I'm a bot. Bleep bloop.{'  '}
-You can add a timestamp to any YouTub link using the `t` parameter. e.g.{'  '}
-`youtube.com/some_video?t=1h2m34s`
+I'm a bot. Bleep bloop.
 """
+
+    def handle_submission(self, submission):
+        if not is_youtube_url_without_timestamp(submission.url):
+            return False
+
+        logger.info({"title": submission.title, "url": submission.url})
+        try:
+            timestamp = get_title_time(submission.title)
+        except TimestampParseError:
+            logger.error(f"Failed to parse title {submission.title}. Error:\n{e}")
+            return False
+
+        if not timestamp:
+            return False
+
+        new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
+        # import pdb; pdb.set_trace()
+        comment = self.generate_comment(new_url)
+        # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
+        logger.info(
+            {
+                "msg": "!!!youtube link missing timestamp!!!",
+                "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
+                "title": submission.title,
+                "url": submission.url,
+                "comment": comment,
+            }
+        )
+        submission.reply(comment)
+        return True
 
     def main(self):
         self.login()
-        visited = 0  # doesn't work with stream
-        # for submission in self.r.subreddit('all').hot(limit=1000):
         for submission in self.r.subreddit("all").stream.submissions():
-            logger.info(
-                {"visited": visited, "title": submission.title, "url": submission.url}
-            )
-            if is_youtube_url_without_timestamp(submission.url):
-                try:
-                    timestamp = get_title_time(submission.title)
-                except TimestampParseError:
-                    logger.error(
-                        f"Failed to parse title {submission.title}. Error:\n{e}"
-                    )
-                    continue  # go to next submission
+            # TODO: switch to whitelist?
+            if submission.subreddit.display_name in self.blacklist:
+                continue
 
-                if timestamp:
-                    new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
-                    # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
-                    logger.info(
-                        f"""found one!
-reddit_url: {self.r.config.reddit_url}{submission.permalink}
-title: {submission.title}
-url: {submission.url}
-"""
-                    )
-                    print(self.comment(new_url))
+            commented = self.handle_submission(submission)
+            if commented:
+                logger.info("comment successful! sleeping for 11 minutes")
+                # TODO: better way to avoid api limit, continue processing but don't comment unless last was at least 10 minutes ago
+                # avoid api timeout for spamming comments
+                time.sleep(11 * 60)  # sleep for 11 minutes after commenting
 
-    def test_specific(self):
-        submission = self.r.submission(
-            url="https://www.reddit.com/r/cringe/comments/pfliwd/starting_at_like_314_this_guy_attempts_some_of/"
-        )
-        # print(submission.title, submission.url, self.is_youtube_url_without_timestamp(submission.url), self.get_title_time(submission.title))
-        if is_youtube_url_without_timestamp(submission.url):
-            try:
-                timestamp = self.get_title_time(submission.title)
-            except TimestampParseError:
-                logger.error(f"Failed to parse title {submission.title}")
-
-            if timestamp:
-                new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
-                print(self.comment(new_url))
+    # def test_specific(self):
+    #     self.login()
+    #     # submission = self.r.submission(
+    #     #     url="https://www.reddit.com/r/cringe/comments/pfliwd/starting_at_like_314_this_guy_attempts_some_of/"
+    #     # )
+    #     # submission = self.r.submission(
+    #     #     url="https://www.reddit.com/r/classicalmusic/comments/psr6s6/the_dude_at_232_same_bro"
+    #     # )
+    #     self.handle_submission(submission)
 
 
 if __name__ == "__main__":
     Bot(time_units).main()
+    # Bot(time_units).test_specific()
