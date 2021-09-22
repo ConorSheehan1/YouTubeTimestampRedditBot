@@ -1,10 +1,12 @@
 # Standard Library
-import re
 from typing import Generator, List, Union
 
 # Third party
 import inflect
 
+# required for inifinte width lookback (?<=\s|^)
+# https://stackoverflow.com/a/40617321/6305204
+import regex
 
 p = inflect.engine()
 
@@ -48,9 +50,11 @@ def get_title_time(title: str) -> Union[str, bool]:
     # this matches 6 when given 60:23. 24:12 matches 4:12. assumes correct format in advance.
     # hh_mm_ss_regex = r" ([0-9]?)[0-9]:([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
 
-    # TODO: match either space or end of string so we don't get things like '2ducks'.
-    hh_mm_ss_regex = r" ((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
-    numeric_timestamp = re.search(hh_mm_ss_regex, title)
+    # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
+    hh_mm_ss_regex = (
+        r"(?<=\s|^)(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])(?=\s|$)"
+    )
+    numeric_timestamp = regex.search(hh_mm_ss_regex, title)
     if numeric_timestamp:
         raw_matched_timestamp = numeric_timestamp.group()
         parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)

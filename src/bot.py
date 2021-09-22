@@ -1,6 +1,5 @@
 # Standard Library
 import os
-import re
 import time
 
 # Third party
@@ -10,10 +9,10 @@ import praw
 from utils.loggers import setup_and_get_logger
 from utils.time_parsing import (
     TimestampParseError,
-    get_title_time,
     generate_time_phrases,
+    get_title_time,
 )
-from utils.youtube import is_youtube_url_without_timestamp, add_timestamp_to_youtube_url
+from utils.youtube import add_timestamp_to_youtube_url, is_youtube_url_without_timestamp
 
 __version__ = "0.1.0"
 time_units = ["second", "minute"]
@@ -25,7 +24,8 @@ class Bot:
         self.time_units = time_units
         self.time_phrases = list(generate_time_phrases(time_units, time_limit))
         # https://www.reddit.com/wiki/bottiquette omit /r/suicidewatch and /r/depression
-        self.blacklist = ["suicidewatch", "depression"]
+        # note: lowercase for case insensitive match
+        self.blacklist = ["suicidewatch", "depression", "hololive"]
 
     def login(self):
         self.r = praw.Reddit(
@@ -79,7 +79,7 @@ I'm a bot. Bleep bloop.
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
             # TODO: switch to whitelist?
-            if submission.subreddit.display_name in self.blacklist:
+            if submission.subreddit.display_name.lower() in self.blacklist:
                 continue
 
             commented = self.handle_submission(submission)

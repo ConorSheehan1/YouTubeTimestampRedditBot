@@ -8,6 +8,7 @@ from src.utils.time_parsing import (
     get_title_time,
 )
 
+
 # TODO: test generate_time_phrases
 class TestTimeParsing(unittest.TestCase):
     def test_convert_numeric_time_to_yt(self):
@@ -36,6 +37,10 @@ class TestTimeParsing(unittest.TestCase):
         dicts = [
             {"input": "Starts at 01:22:35", "expected_output": "1h22m35s"},
             {"input": "Cool thing at 12:34", "expected_output": "12m34s"},
+            {"input": "23:34 cool thing", "expected_output": "23m34s"},
+            {"input": "[23:34] cool thing", "expected_output": False},
+            {"input": "23:34] cool thing", "expected_output": False},
+            {"input": "[23:34 cool thing", "expected_output": False},
             {"input": "Cool thing at 60:34", "expected_output": False},
             {"input": "Cool thing at 24:34", "expected_output": False},
             {"input": "Not a time [34m]", "expected_output": False},
@@ -48,11 +53,12 @@ class TestTimeParsing(unittest.TestCase):
                 "input": "Around 12 seconds something happens",
                 "expected_output": False,
             },  # will be handled with time phrases
+            {"input": "Documentary at 01:12:34", "expected_output": "1h12m34s"},
+            {"input": "r/hololive (Sep 22 @ 21:00JST)", "expected_output": False},
             {
                 "input": "Documentary [00:12:34]",
                 "expected_output": False,
             },  # r/documentaries format
-            {"input": "Documentary at 01:12:34", "expected_output": "1h12m34s"},
         ]
 
         for (i, d) in enumerate(dicts):

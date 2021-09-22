@@ -10,6 +10,7 @@ python = "^3.6.2"
 praw = "^7.4.0"
 inflect = "^5.3.0"
 furl = "^2.1.2"
+regex = "^2021.8.28"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -27,7 +28,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.taskipy.tasks]
 ci_lint = "black --check ."
 ci_isort = "isort --check --diff"
-isort = 'isort -y'
+isort = 'isort .'
 lint = "black ."
 tests = "python -m pytest tests"
 mypy = "mypy --ignore-missing-imports src"
@@ -36,9 +37,5 @@ mypy = "mypy --ignore-missing-imports src"
 import_heading_stdlib = "Standard Library"
 import_heading_thirdparty = "Third party"
 import_heading_firstparty = "YouTubeTimestampRedditBot"
-# copied from https://github.com/psf/black/blob/master/docs/compatible_configs.md
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 100
+# copied from https://github.com/psf/black/blob/6559bdbd9dcf71ba0017d66bb133c744bd83b0e3/docs/guides/using_black_with_other_tools.md
+profile = "black"
