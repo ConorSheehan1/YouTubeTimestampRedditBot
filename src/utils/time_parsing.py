@@ -9,6 +9,9 @@ import inflect
 import regex
 
 p = inflect.engine()
+excluded_prefixes = ["under", "less than", "in"]
+# expected prefixes ["at", "around"]
+# handle passing words e.g. ["like"]
 
 
 class TimestampParseError(Exception):
@@ -42,20 +45,24 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
 
 
 def get_title_time(title: str) -> Union[str, bool]:
-    # https://stackoverflow.com/a/7536768/6305204
-    # https://stackoverflow.com/a/8318367/6305204
-
-    # this won't match hours
-    # mm_ss_regex = r" ([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
-    # this matches 6 when given 60:23. 24:12 matches 4:12. assumes correct format in advance.
-    # hh_mm_ss_regex = r" ([0-9]?)[0-9]:([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
-
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
-    hh_mm_ss_regex = (
-        r"(?<=\s|^)(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])(?=\s|$)"
-    )
+    space_or_start = r"(?<=\s|^)"
+    hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
+    space_or_end = r"(?=\s|$)"
+    hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_or_end}"
     numeric_timestamp = regex.search(hh_mm_ss_regex, title)
     if numeric_timestamp:
+        # handle cases like `beaten under 3:00`
+        # https://www.reddit.com/r/bindingofisaac/comments/ptfbgm/beating_greedier_mode_in_under_300_with_only_1/
+        pre_timestamp = title[: numeric_timestamp.span()[0]]
+        if any(
+            [
+                pre_timestamp.strip().lower().endswith(prefix)
+                for prefix in excluded_prefixes
+            ]
+        ):
+            return False
+
         raw_matched_timestamp = numeric_timestamp.group()
         parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)
 

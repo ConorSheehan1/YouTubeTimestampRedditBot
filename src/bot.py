@@ -45,6 +45,9 @@ Link that starts at the time OP mentioned: {new_url}
 I'm a bot. Bleep bloop.
 """
 
+    def already_commented(self, submission):
+        return any([comment.author == self.username for comment in submission.replies])
+
     def handle_submission(self, submission):
         if not is_youtube_url_without_timestamp(submission.url):
             return False
@@ -57,6 +60,15 @@ I'm a bot. Bleep bloop.
             return False
 
         if not timestamp:
+            return False
+
+        if self.already_commented(submission):
+            logger.info(
+                {
+                    "msg": "!!already commented!!",
+                    "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
+                }
+            )
             return False
 
         new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
