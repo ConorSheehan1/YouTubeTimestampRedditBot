@@ -38,6 +38,7 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "Starts at 01:22:35", "expected_output": "1h22m35s"},
             {"input": "Cool thing at 12:34", "expected_output": "12m34s"},
             {"input": "23:34 cool thing", "expected_output": "23m34s"},
+            {"input": "The dude at 2:32. Same bro!", "expected_output": "2m32s"},
             {"input": "[23:34] cool thing", "expected_output": False},
             {"input": "23:34] cool thing", "expected_output": False},
             {"input": "[23:34 cool thing", "expected_output": False},

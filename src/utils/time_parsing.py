@@ -48,8 +48,8 @@ def get_title_time(title: str) -> Union[str, bool]:
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
     space_or_start = r"(?<=\s|^)"
     hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
-    space_or_end = r"(?=\s|$)"
-    hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_or_end}"
+    space_fullstop_or_end = r"(?=\s|\.\s|$)"
+    hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_fullstop_or_end}"
     numeric_timestamp = regex.search(hh_mm_ss_regex, title)
     if numeric_timestamp:
         # handle cases like `beaten under 3:00`
