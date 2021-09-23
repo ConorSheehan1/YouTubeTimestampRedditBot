@@ -3,7 +3,7 @@ name = "youtubetimestampredditbot"
 version = "0.1.0"
 description = ""
 authors = ["Conor Sheehan <conor.sheehan.dev@gmail.com>"]
-license = "GPL3"
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.6.2"
@@ -29,7 +29,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.taskipy.tasks]
 ci_lint = "black --check ."
-ci_isort = "isort --check --diff"
+ci_isort = "isort --check --diff ."
 isort = 'isort .'
 lint = "black ."
 tests = "python -m pytest tests"
