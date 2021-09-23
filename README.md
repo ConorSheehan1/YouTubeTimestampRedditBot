@@ -1,5 +1,9 @@
+[![Build Status](https://github.com/ConorSheehan1/YouTubeTimestampRedditBot/workflows/ci/badge.svg)](https://github.com/ConorSheehan1/YouTubeTimestampRedditBot/actions/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 # YouTubeTimestampRedditBot
-Reddit bot that comments on posts that link to youtube and reference time, but don't include a timestamp in the link.
+YouTubeTimestampRedditBot is a bot that searches reddit for posts which link to youtube and reference a timestamp, but don't include the timestamp in the link. It comments on those posts with an updated link including the timestamp, hopfully saving people precious milliseconds navigating to the time in the video.
 
 To run the main script
 ```bash
@@ -14,7 +18,14 @@ client_secret
 password
 ```
 
-# Tests
+### Tests
 ```bash
 poetry run task tests
+```
+
+### Linting
+```bash
+poetry run task lint
+poetry run task isort
+poetry run task mypy
 ```
