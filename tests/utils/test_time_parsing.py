@@ -64,6 +64,11 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "beaten in under 3:00", "expected_output": False},
             {"input": "finished in less than 3:00", "expected_output": False},
             {"input": "done in 3:00", "expected_output": False},
+            # excluded suffixes
+            {"input": "thing at 3:00 pm", "expected_output": False},
+            {"input": "thing at 3:00 jst", "expected_output": False},
+            {"input": "thing at 3:00 EST", "expected_output": False},
+            {"input": "thing at 3:00PST", "expected_output": False},
         ]
 
         for (i, d) in enumerate(dicts):

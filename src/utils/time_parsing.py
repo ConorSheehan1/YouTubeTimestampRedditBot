@@ -8,8 +8,13 @@ import inflect
 # https://stackoverflow.com/a/40617321/6305204
 import regex
 
+# YouTubeTimestampRedditBot
+from src.data.time_zone_codes import time_codes
+
 p = inflect.engine()
 excluded_prefixes = ["under", "less than", "in"]
+excluded_suffixes = ["am", "pm"]
+excluded_suffixes.extend(time_codes)
 # expected prefixes ["at", "around"]
 # handle passing words e.g. ["like"]
 
@@ -44,6 +49,27 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
     return "".join(yt_format_strings[::-1])
 
 
+def has_excluded_prefix(title: str, numeric_timestamp: regex.Match) -> bool:
+    # handle cases like `beaten under 3:00`
+    # https://www.reddit.com/r/bindingofisaac/comments/ptfbgm/beating_greedier_mode_in_under_300_with_only_1/
+    pre_timestamp = title[: numeric_timestamp.span()[0]]
+    return any(
+        [pre_timestamp.strip().lower().endswith(prefix) for prefix in excluded_prefixes]
+    )
+
+
+def has_excluded_suffix(title: str, numeric_timestamp: regex.Match) -> bool:
+    # handle cases like `rally at 3:00 EST`
+    # https://www.reddit.com/r/pga2k21/comments/pu2abg/will_be_reviewing_and_rating_a_hard_and_hardest/
+    post_timestamp = title[numeric_timestamp.span()[1] :]
+    return any(
+        [
+            post_timestamp.strip().lower().startswith(suffix)
+            for suffix in excluded_suffixes
+        ]
+    )
+
+
 def get_title_time(title: str) -> Union[str, bool]:
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
     space_or_start = r"(?<=\s|^)"
@@ -52,15 +78,10 @@ def get_title_time(title: str) -> Union[str, bool]:
     hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_fullstop_or_end}"
     numeric_timestamp = regex.search(hh_mm_ss_regex, title)
     if numeric_timestamp:
-        # handle cases like `beaten under 3:00`
-        # https://www.reddit.com/r/bindingofisaac/comments/ptfbgm/beating_greedier_mode_in_under_300_with_only_1/
-        pre_timestamp = title[: numeric_timestamp.span()[0]]
-        if any(
-            [
-                pre_timestamp.strip().lower().endswith(prefix)
-                for prefix in excluded_prefixes
-            ]
-        ):
+        if has_excluded_prefix(title, numeric_timestamp):
+            return False
+
+        if has_excluded_suffix(title, numeric_timestamp):
             return False
 
         raw_matched_timestamp = numeric_timestamp.group()
