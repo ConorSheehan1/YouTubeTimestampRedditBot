@@ -61,8 +61,8 @@ def get_title_time(title: str) -> Union[str, bool]:
     # TODO: false positive `3:00 eastern`
     space_or_start = r"(?<=\s|^)"
     hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
-    space_fullstop_or_end = r"(?=\s|\.\s|$)"
-    hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_fullstop_or_end}"
+    space_punctuation_or_end = r"(?=\s|\.\s|\,\s|$)"
+    hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_punctuation_or_end}"
     numeric_timestamp = regex.search(hh_mm_ss_regex, title)
     if numeric_timestamp:
         if has_excluded_prefix(title, numeric_timestamp):
