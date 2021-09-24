@@ -8,41 +8,42 @@ from prawcore.exceptions import RequestException, ResponseException, ServerError
 from requests.exceptions import ConnectionError, ReadTimeout
 
 # YouTubeTimestampRedditBot
-from utils.loggers import setup_and_get_logger
-from utils.time_parsing import (
-    TimestampParseError,
-    generate_time_phrases,
-    get_title_time,
+from src.utils.loggers import setup_and_get_logger
+from src.utils.time_parsing import TimestampParseError, get_title_time
+from src.utils.youtube import (
+    add_timestamp_to_youtube_url,
+    is_youtube_url_without_timestamp,
 )
-from utils.youtube import add_timestamp_to_youtube_url, is_youtube_url_without_timestamp
 
 __version__ = "0.1.0"
 # TODO: move to config file, add as args to bot constructor
 logger = setup_and_get_logger("bot.py")
-TIME_UNITS = ["second", "minute"]
 RETRY_WAIT_TIME = 1  # retry every minute
 COMMENT_WAIT_TIME = 11  # only comment every 11 minutes
 RETRY_LIMIT = 3
 
 
 class Bot:
-    def __init__(self, time_units, time_limit: int = 60):
-        self.time_units = TIME_UNITS
-        self.time_phrases = list(generate_time_phrases(TIME_UNITS, time_limit))
+    def __init__(self):
         # https://www.reddit.com/wiki/bottiquette omit /r/suicidewatch and /r/depression
         # note: lowercase for case insensitive match
         self.blacklist = ["suicidewatch", "depression", "hololive"]
         self.username = "YouTubeTimestampBot"
 
     def login(self):
-        self.r = praw.Reddit(
-            client_id=os.getenv("client_id"),
-            client_secret=os.getenv("client_secret"),
-            user_agent=f"<console:{self.username}:{__version__}>",
-            username=self.username,
-            password=os.getenv("password")  # TODO: switch to oauth
-            # https://www.reddit.com/r/GoldTesting/comments/3cm1p8/how_to_make_your_bot_use_oauth2/
-        )
+        login_kwargs = {
+            "user_agent": f"<console:{self.username}:{__version__}>",
+            "username": self.username,
+            "client_id": os.getenv("client_id"),
+            "client_secret": os.getenv("client_secret"),
+        }
+        # https://www.reddit.com/r/GoldTesting/comments/3cm1p8/how_to_make_your_bot_use_oauth2/
+        refresh_token = os.getenv("refresh_token")
+        if refresh_token:
+            login_kwargs["refresh_token"] = refresh_token
+        else:
+            login_kwargs["password"] = os.getenv("password")
+        self.r = praw.Reddit(**login_kwargs)
 
     def generate_comment(self, new_url: str) -> str:
         # TODO: better way of keeping 2 spaces for markdown formatting?
@@ -60,18 +61,20 @@ I'm a bot. Bleep bloop.
     def handle_submission(self, submission):
         if not is_youtube_url_without_timestamp(submission.url):
             return False
-
         logger.info({"title": submission.title, "url": submission.url})
         try:
             timestamp = get_title_time(submission.title)
         except TimestampParseError:
             logger.error(f"Failed to parse title {submission.title}. Error:\n{e}")
             return False
-
         if not timestamp:
+            logger.info(
+                {
+                    "msg": "!!no timestamp found!!",
+                    "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
+                }
+            )
             return False
-
-        # import pdb; pdb.set_trace()
         if self.already_commented(submission):
             logger.info(
                 {
@@ -80,7 +83,6 @@ I'm a bot. Bleep bloop.
                 }
             )
             return False
-
         new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
         comment = self.generate_comment(new_url)
         # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
@@ -102,7 +104,6 @@ I'm a bot. Bleep bloop.
             # TODO: switch to whitelist?
             if submission.subreddit.display_name.lower() in self.blacklist:
                 continue
-
             commented = self.handle_submission(submission)
             if commented:
                 logger.info("comment successful! sleeping for 11 minutes")
@@ -136,6 +137,6 @@ I'm a bot. Bleep bloop.
 
 
 if __name__ == "__main__":
-    Bot(TIME_UNITS).main()
-    # Bot(TIME_UNITS).test_specific("https://www.reddit.com/r/cringe/comments/pfliwd/starting_at_like_314_this_guy_attempts_some_of/")
-    # Bot(TIME_UNITS).test_specific("https://www.reddit.com/r/classicalmusic/comments/psr6s6/the_dude_at_232_same_bro")
+    Bot().main()
+    # Bot().test_specific("https://www.reddit.com/r/cringe/comments/pfliwd/starting_at_like_314_this_guy_attempts_some_of/")
+    # Bot().test_specific("https://www.reddit.com/r/classicalmusic/comments/psr6s6/the_dude_at_232_same_bro")

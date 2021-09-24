@@ -9,7 +9,6 @@ from src.utils.time_parsing import (
 )
 
 
-# TODO: test generate_time_phrases
 class TestTimeParsing(unittest.TestCase):
     def test_convert_numeric_time_to_yt(self):
         dicts = [

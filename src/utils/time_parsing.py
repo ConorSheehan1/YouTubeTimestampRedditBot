@@ -2,8 +2,6 @@
 from typing import Generator, List, Union
 
 # Third party
-import inflect
-
 # required for inifinte width lookback (?<=\s|^)
 # https://stackoverflow.com/a/40617321/6305204
 import regex
@@ -11,7 +9,6 @@ import regex
 # YouTubeTimestampRedditBot
 from src.data.time_zone_codes import time_codes
 
-p = inflect.engine()
 excluded_prefixes = ["under", "less than", "in"]
 excluded_suffixes = ["am", "pm"]
 excluded_suffixes.extend(time_codes)
@@ -21,18 +18,6 @@ excluded_suffixes.extend(time_codes)
 
 class TimestampParseError(Exception):
     pass
-
-
-def generate_time_phrases(
-    units: List[str], limit: int = 60
-) -> Generator[str, None, None]:
-    """
-    returns: strings like 'one second', 'two seconds' etc.
-    """
-    for unit in units:
-        yield f"one {unit}"
-        for i in range(2, limit):
-            yield f"{p.number_to_words(i)} {p.plural(unit)}"
 
 
 def convert_numeric_time_to_yt(timestamp: str) -> str:
@@ -72,6 +57,8 @@ def has_excluded_suffix(title: str, numeric_timestamp: regex.Match) -> bool:
 
 def get_title_time(title: str) -> Union[str, bool]:
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
+    # TODO: handle `Starting at like 3:14, this guy`
+    # TODO: false positive `3:00 eastern`
     space_or_start = r"(?<=\s|^)"
     hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
     space_fullstop_or_end = r"(?=\s|\.\s|$)"
@@ -90,10 +77,4 @@ def get_title_time(title: str) -> Union[str, bool]:
         # TODO: include logging without breaking tests
         # logger.info({"title": title, "raw_matched_timestamp": raw_matched_timestamp, "parsed_timestamp": parsed_timestamp})
         return parsed_timestamp
-    # # only need to check for singular version, since it's always a substring.
-    # # e.g. 'thirty seconds' and 'one second' both contain 'second'.
-    # if any([unit in title for unit in self.time_units]):
-    #     for time_phrase in self.time_phrase:
-    #         if time_phrase in title:
-    #             return time_phrase
     return False
