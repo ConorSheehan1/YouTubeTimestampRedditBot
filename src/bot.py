@@ -27,7 +27,7 @@ class Bot:
     def __init__(self):
         # https://www.reddit.com/wiki/bottiquette omit /r/suicidewatch and /r/depression
         # note: lowercase for case insensitive match
-        self.blacklist = ["suicidewatch", "depression", "hololive"]
+        self.blacklist = ["suicidewatch", "depression", "hololive", "internetbrasil"]
         self.username = "YouTubeTimestampBot"
 
     def login(self):
