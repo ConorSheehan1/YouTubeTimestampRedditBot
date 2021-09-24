@@ -4,10 +4,10 @@ pip install poetry # only if needed
 poetry install
 ```
 
-# GitHooks
+## GitHooks
 To setup git hooks run:
 ```bash
-pre-commit install
+poetry run pre-commit install
 ```
 
 # Reddit
@@ -18,6 +18,15 @@ YT example: https://www.youtube.com/watch?v=3FpqXyJsd1s
 ## Refresh token
 ```bash
 poetry run task obtain_refresh_token
+```
+
+### Version management
+```bash
+# pass args e.g. patch, minor, major, choose to commit changes or not
+poetry run bumpversion --commit --tag patch
+# once the tag is built by the release action, check the attached .tar is installable.
+# e.g. `pip install git+https://github.com/ConorSheehan1/shot@v0.1.1`
+# if it is update the release draft and pre-release state.
 ```
 
 # Heroku setup

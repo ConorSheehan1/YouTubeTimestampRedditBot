@@ -32,3 +32,6 @@ poetry run task lint
 poetry run task isort
 poetry run task mypy
 ```
+
+### Development notes
+See [dev.md](./dev.md)
