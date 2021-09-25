@@ -9,12 +9,12 @@ import regex
 # YouTubeTimestampRedditBot
 from src.data.time_zones import time_zone_codes, time_zone_first_words
 
-excluded_prefixes = ["under", "less than", "in"]
-excluded_suffixes = ["am", "pm", "midday"]
+# note: lowercase for case insensitive match
+excluded_prefixes = ["under", "less than", "in", "live", "live at", "live in"]
+# don't need variations of live for suffixes
+excluded_suffixes = ["am", "pm", "midday", "live"]
 excluded_suffixes.extend(time_zone_codes)
 excluded_suffixes.extend(time_zone_first_words)
-# expected prefixes ["at", "around"]
-# handle passing words e.g. ["like"]
 
 
 class TimestampParseError(Exception):
