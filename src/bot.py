@@ -8,6 +8,7 @@ from prawcore.exceptions import RequestException, ResponseException, ServerError
 from requests.exceptions import ConnectionError, ReadTimeout
 
 # YouTubeTimestampRedditBot
+from src.data.subreddits import blacklist
 from src.utils.loggers import setup_and_get_logger
 from src.utils.time_parsing import TimestampParseError, get_title_time
 from src.utils.youtube import (
@@ -25,9 +26,7 @@ RETRY_LIMIT = 3
 
 class Bot:
     def __init__(self):
-        # https://www.reddit.com/wiki/bottiquette omit /r/suicidewatch and /r/depression
-        # note: lowercase for case insensitive match
-        self.blacklist = ["suicidewatch", "depression", "hololive", "internetbrasil"]
+        self.blacklist = blacklist
         self.username = "YouTubeTimestampBot"
         self.version = __version__
 

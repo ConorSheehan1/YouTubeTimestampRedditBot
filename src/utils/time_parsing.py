@@ -7,11 +7,12 @@ from typing import Generator, List, Union
 import regex
 
 # YouTubeTimestampRedditBot
-from src.data.time_zone_codes import time_codes
+from src.data.time_zones import time_zone_codes, time_zone_first_words
 
 excluded_prefixes = ["under", "less than", "in"]
-excluded_suffixes = ["am", "pm"]
-excluded_suffixes.extend(time_codes)
+excluded_suffixes = ["am", "pm", "midday"]
+excluded_suffixes.extend(time_zone_codes)
+excluded_suffixes.extend(time_zone_first_words)
 # expected prefixes ["at", "around"]
 # handle passing words e.g. ["like"]
 
