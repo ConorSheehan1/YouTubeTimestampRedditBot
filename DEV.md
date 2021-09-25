@@ -46,3 +46,12 @@ heroku config:set refresh_token=$refresh_token
 ```
 
 Note commits to main branch are automatically deployed using heroku pipeline.
+
+# Detect secrets
+```bash
+# scan all files
+git ls-files -z | xargs -0 poetry run detect-secrets-hook --baseline .secrets.baseline
+
+# create new baseline
+poetry run detect-secrets scan --baseline .secrets.baseline
+```
