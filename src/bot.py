@@ -16,7 +16,7 @@ from src.utils.youtube import (
     is_youtube_url_without_timestamp,
 )
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 # TODO: move to config file, add as args to bot constructor
 logger = setup_and_get_logger("bot.py")
 RETRY_WAIT_TIME = 1  # retry every minute
