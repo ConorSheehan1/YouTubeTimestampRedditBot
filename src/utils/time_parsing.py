@@ -67,14 +67,9 @@ def get_title_time(title: str) -> Union[str, bool]:
     if numeric_timestamp:
         if has_excluded_prefix(title, numeric_timestamp):
             return False
-
         if has_excluded_suffix(title, numeric_timestamp):
             return False
-
         raw_matched_timestamp = numeric_timestamp.group()
         parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)
-
-        # TODO: include logging without breaking tests
-        # logger.info({"title": title, "raw_matched_timestamp": raw_matched_timestamp, "parsed_timestamp": parsed_timestamp})
         return parsed_timestamp
     return False

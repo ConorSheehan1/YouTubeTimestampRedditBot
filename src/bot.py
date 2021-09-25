@@ -4,6 +4,7 @@ import time
 
 # Third party
 import praw
+from dotenv import load_dotenv
 from prawcore.exceptions import RequestException, ResponseException, ServerError
 from requests.exceptions import ConnectionError, ReadTimeout
 
@@ -17,11 +18,14 @@ from src.utils.youtube import (
 )
 
 __version__ = "1.0.1"
-# TODO: move to config file, add as args to bot constructor
 logger = setup_and_get_logger("bot.py")
-RETRY_WAIT_TIME = 1  # retry every minute
-COMMENT_WAIT_TIME = 11  # only comment every 11 minutes
-RETRY_LIMIT = 3
+load_dotenv()
+# need to cast to int for values coming from .env file
+CONNECTION_RETRY_LIMIT = int(os.getenv("connection_retry_limit", 3))
+CONNECTION_RETRY_WAIT_TIME = int(os.getenv("connection_retry_wait_time", 1))
+COMMENT_WAIT_TIME = int(
+    os.getenv("comment_wait_time", 10)
+)  # can hit api limits if < 10
 
 
 class Bot:
@@ -96,16 +100,14 @@ version {self.version}
                 continue
             commented = self.handle_submission(submission)
             if commented:
-                logger.info("comment successful! sleeping for 11 minutes")
-                # TODO: better way to avoid api limit, continue processing but don't comment unless last was at least 10 minutes ago
-                # avoid api timeout for spamming comments
-                time.sleep(
-                    COMMENT_WAIT_TIME * 60
-                )  # sleep for 11 minutes after commenting
+                logger.info(
+                    f"comment successful! sleeping for {COMMENT_WAIT_TIME} minutes"
+                )
+                time.sleep(COMMENT_WAIT_TIME * 60)
 
     def main(self):
         retries = 0
-        while retries < RETRY_LIMIT:
+        while retries < CONNECTION_RETRY_LIMIT:
             try:
                 self.stream_all_subreddits()
             except (
@@ -117,8 +119,8 @@ version {self.version}
             ) as e:
                 retries += 1
                 logger.error(f"Error:\n{e}")
-                logger.info(f"Retrying in {RETRY_WAIT_TIME} minute.")
-                time.sleep(RETRY_WAIT_TIME * 60)
+                logger.info(f"Retrying in {CONNECTION_RETRY_WAIT_TIME} minute.")
+                time.sleep(CONNECTION_RETRY_WAIT_TIME * 60)
 
     def test_specific(self, reddit_post_url):
         self.login()
