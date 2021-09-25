@@ -47,11 +47,10 @@ class Bot:
 
     def generate_comment(self, new_url: str) -> str:
         # TODO: better way of keeping 2 spaces for markdown formatting?
-        return f"""
-Link that starts at the time OP mentioned: {new_url}
+        return f"""Link that starts at the time OP mentioned: {new_url}
 ***********************{'  '}
 I'm a bot. Bleep bloop.{'  '}
-version ${self.version}
+version {self.version}
 """
 
     def already_commented(self, submission):
