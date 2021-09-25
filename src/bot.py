@@ -58,50 +58,40 @@ version {self.version}
             [comment.author.name == self.username for comment in submission.comments]
         )
 
+    def log_submission(self, submission, extra_info={}):
+        default_info = {
+            "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
+            "title": submission.title,
+            "url": submission.url,
+        }
+        default_info.update(extra_info)
+        logger.info(default_info)
+
     def handle_submission(self, submission):
         if not is_youtube_url_without_timestamp(submission.url):
             return False
-        logger.info({"title": submission.title, "url": submission.url})
         try:
             timestamp = get_title_time(submission.title)
         except TimestampParseError:
             logger.error(f"Failed to parse title {submission.title}. Error:\n{e}")
             return False
         if not timestamp:
-            logger.info(
-                {
-                    "msg": "!!no timestamp found!!",
-                    "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
-                }
-            )
+            self.log_submission(submission, {"msg": "!!no timestamp found!!"})
             return False
         if self.already_commented(submission):
-            logger.info(
-                {
-                    "msg": "!!already commented!!",
-                    "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
-                }
-            )
+            self.log_submission(submission, {"msg": "!!already commented!!"})
             return False
         new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
         comment = self.generate_comment(new_url)
         # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
-        logger.info(
-            {
-                "msg": "!!!youtube link missing timestamp!!!",
-                "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
-                "title": submission.title,
-                "url": submission.url,
-                "comment": comment,
-            }
-        )
+
+        self.log_submission(submission, {"msg": "!!!got one!!!", "comment": comment})
         submission.reply(comment)
         return True
 
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
-            # TODO: switch to whitelist?
             if submission.subreddit.display_name.lower() in self.blacklist:
                 continue
             commented = self.handle_submission(submission)
@@ -138,5 +128,3 @@ version {self.version}
 
 if __name__ == "__main__":
     Bot().main()
-    # Bot().test_specific("https://www.reddit.com/r/cringe/comments/pfliwd/starting_at_like_314_this_guy_attempts_some_of/")
-    # Bot().test_specific("https://www.reddit.com/r/classicalmusic/comments/psr6s6/the_dude_at_232_same_bro")
