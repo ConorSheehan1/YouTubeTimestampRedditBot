@@ -29,10 +29,11 @@ class Bot:
         # note: lowercase for case insensitive match
         self.blacklist = ["suicidewatch", "depression", "hololive", "internetbrasil"]
         self.username = "YouTubeTimestampBot"
+        self.version = __version__
 
     def login(self):
         login_kwargs = {
-            "user_agent": f"<console:{self.username}:{__version__}>",
+            "user_agent": f"<console:{self.username}:{self.version}>",
             "username": self.username,
             "client_id": os.getenv("client_id"),
             "client_secret": os.getenv("client_secret"),
@@ -50,7 +51,8 @@ class Bot:
         return f"""
 Link that starts at the time OP mentioned: {new_url}
 ***********************{'  '}
-I'm a bot. Bleep bloop.
+I'm a bot. Bleep bloop.{'  '}
+version ${self.version}
 """
 
     def already_commented(self, submission):
