@@ -17,7 +17,7 @@ from src.utils.youtube import (
     is_youtube_url_without_timestamp,
 )
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 logger = setup_and_get_logger("bot.py")
 load_dotenv()
 # need to cast to int for values coming from .env file
