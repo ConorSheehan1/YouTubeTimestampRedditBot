@@ -7,10 +7,12 @@ YouTubeTimestampRedditBot is a bot that searches reddit for posts which link to 
 
 To run the main script
 ```bash
-refresh_token="token" client_secret='$your_secret_here' client_id='$yor_id_here' poetry run python -m src/bot
+poetry run python -m src/bot
 # will need to run `poetry run task obtain_refresh_token`
 # note: running src/bot.py directly will not work, since there a sibling modules which rely on each other
 # (src.utils imports src.data)
+# you can add environment variables to the .env file, or pass them directly. e.g.
+refresh_token="token" client_secret='$secret' client_id='$id' poetry run python -m src/bot
 ```
 
 Environment variables
@@ -24,8 +26,9 @@ password # prefer refresh_token instead
 log_level ["INFO", "WARNING", "NOTSET"]
 connection_retry_limit
 # times are in minutes
-connection_retry_wait_time # can hit api limits if < 10
-comment_wait_time
+connection_retry_wait_time
+comment_wait_time # can hit api limits if < 10
+git_repo
 ```
 
 ### Tests

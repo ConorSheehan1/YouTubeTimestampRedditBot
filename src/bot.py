@@ -50,12 +50,18 @@ class Bot:
             login_kwargs["password"] = os.getenv("password")
         self.r = praw.Reddit(**login_kwargs)
 
+    def generate_footer(self) -> str:
+        base = f"version {self.version}"
+        if GIT_REPO:
+            return f"[source]({GIT_REPO}) | {base}"
+        return base
+
     def generate_comment(self, new_url: str) -> str:
         # TODO: better way of keeping 2 spaces for markdown formatting?
         return f"""Link that starts at the time OP mentioned: {new_url}
 ******************************************{'  '}
 I'm a bot. Bleep bloop.{'  '}
-[source]({GIT_REPO}) | version {self.version}
+{self.generate_footer()}
 """
 
     def already_commented(self, submission):
