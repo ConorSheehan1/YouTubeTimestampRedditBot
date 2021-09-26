@@ -26,6 +26,7 @@ CONNECTION_RETRY_WAIT_TIME = int(os.getenv("connection_retry_wait_time", 1))
 COMMENT_WAIT_TIME = int(
     os.getenv("comment_wait_time", 10)
 )  # can hit api limits if < 10
+GIT_REPO = os.getenv("git_repo")
 
 
 class Bot:
@@ -52,9 +53,9 @@ class Bot:
     def generate_comment(self, new_url: str) -> str:
         # TODO: better way of keeping 2 spaces for markdown formatting?
         return f"""Link that starts at the time OP mentioned: {new_url}
-***********************{'  '}
+******************************************{'  '}
 I'm a bot. Bleep bloop.{'  '}
-version {self.version}
+[source]({GIT_REPO}) | version {self.version}
 """
 
     def already_commented(self, submission):
@@ -80,10 +81,10 @@ version {self.version}
             logger.error(f"Failed to parse title {submission.title}. Error:\n{e}")
             return False
         if not timestamp:
-            self.log_submission(submission, {"msg": "!!no timestamp found!!"})
+            self.log_submission(submission, {"msg": "no timestamp found"})
             return False
         if self.already_commented(submission):
-            self.log_submission(submission, {"msg": "!!already commented!!"})
+            self.log_submission(submission, {"msg": "already commented"})
             return False
         new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
         comment = self.generate_comment(new_url)
