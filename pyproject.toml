@@ -36,6 +36,8 @@ lint = "black ."
 tests = "python -m pytest tests"
 mypy = "mypy --ignore-missing-imports src"
 obtain_refresh_token = "python scripts/obtain_refresh_token.py"
+detect_secrets = "git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline"
+detect_secrets_new_baseline = "detect-secrets scan > .secrets.baseline"
 
 [tool.isort]
 import_heading_stdlib = "Standard Library"
