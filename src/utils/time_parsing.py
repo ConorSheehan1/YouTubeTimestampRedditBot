@@ -67,7 +67,6 @@ def has_excluded_suffix(title: str, numeric_timestamp: regex.Match) -> bool:
 
 def get_title_time(title: str) -> Union[str, bool]:
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
-    # TODO: handle `Starting at like 3:14, this guy`
     space_or_start = r"(?<=\s|^)"
     hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
     space_punctuation_or_end = r"(?=\s|\.\s|\,\s|$)"

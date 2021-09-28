@@ -59,7 +59,6 @@ class Bot:
         return base
 
     def generate_comment(self, new_url: str) -> str:
-        # TODO: better way of keeping 2 spaces for markdown formatting?
         return f"""Link that starts at the time OP mentioned: {new_url}
 ******************************************{'  '}
 I'm a bot. Bleep bloop.{'  '}
@@ -145,7 +144,7 @@ if __name__ == "__main__":
     COMMENT_WAIT_TIME = int(
         os.getenv("comment_wait_time", 10)
     )  # can hit api limits if < 10
-    GIT_REPO = os.getenv("git_repo")
+    GIT_REPO = os.getenv("git_repo", "")
     Bot(
         CONNECTION_RETRY_LIMIT, CONNECTION_RETRY_WAIT_TIME, COMMENT_WAIT_TIME, GIT_REPO
     ).main()
