@@ -21,7 +21,6 @@ Environment variables
 refresh_token
 client_id
 client_secret
-PAFY_BACKEND="internal"
 # optional
 password # prefer refresh_token instead
 log_level ["INFO", "WARNING", "NOTSET"]

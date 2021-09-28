@@ -3,10 +3,10 @@ import os
 import time
 
 # Third party
-import pafy
 import praw
 from dotenv import load_dotenv
 from prawcore.exceptions import RequestException, ResponseException, ServerError
+from pytube import YouTube
 from requests.exceptions import ConnectionError, ReadTimeout
 
 # YouTubeTimestampRedditBot
@@ -91,10 +91,9 @@ I'm a bot. Bleep bloop.{'  '}
         if not reddit_title_timestamp:
             self.log_submission(submission, {"msg": "no timestamp in reddit title"})
             return False
-        # import pdb; pdb.set_trace()
         timestamp, raw_timestamp = reddit_title_timestamp
-        yt_metadata = pafy.new(submission.url)
-        if yt_metadata.title.contains(raw_timestamp):
+        yt_metadata = YouTube(submission.url).streams.first()
+        if raw_timestamp in yt_metadata.title:
             self.log_submission(submission, {"msg": "timestamp in youtube title"})
             return False
         if self.already_commented(submission):
@@ -154,6 +153,4 @@ if __name__ == "__main__":
     GIT_REPO = os.getenv("git_repo", "")
     Bot(
         CONNECTION_RETRY_LIMIT, CONNECTION_RETRY_WAIT_TIME, COMMENT_WAIT_TIME, GIT_REPO
-    ).test_specific(
-        "https://www.reddit.com/r/gamingvids/comments/pwpt4k/resident_evil_3_mercenaries_mikhail_a_rank_2103/"
-    )
+    ).main()
