@@ -13,4 +13,6 @@ blacklist = [
     "saintrampalji",
     # needs more karma
     "centrist",
+    # handle timestamp in youtube title
+    "dauntless",
 ]
