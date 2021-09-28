@@ -73,6 +73,7 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "finished in less than 3:00", "expected_output": False},
             {"input": "done in 3:00", "expected_output": False},
             {"input": "first sub 3:00 lap", "expected_output": False},
+            {"input": "episode 2:01", "expected_output": False},
             {"input": "live 3:00", "expected_output": False},
             {"input": "live at 3:00", "expected_output": False},
             {"input": "live in 3:00", "expected_output": False},
