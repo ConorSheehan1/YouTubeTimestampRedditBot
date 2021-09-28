@@ -1,5 +1,5 @@
 # Standard Library
-from typing import Generator, List, Union
+from typing import Any, List, Tuple, Union
 
 # Third party
 # required for inifinte width lookback (?<=\s|^)
@@ -65,7 +65,7 @@ def has_excluded_suffix(title: str, numeric_timestamp: regex.Match) -> bool:
     )
 
 
-def get_title_time(title: str) -> Union[str, bool]:
+def get_title_time(title: str) -> Union[Tuple[str, Any], bool]:
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
     space_or_start = r"(?<=\s|^)"
     hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
@@ -79,5 +79,5 @@ def get_title_time(title: str) -> Union[str, bool]:
             return False
         raw_matched_timestamp = numeric_timestamp.group()
         parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)
-        return parsed_timestamp
+        return (parsed_timestamp, raw_matched_timestamp)
     return False

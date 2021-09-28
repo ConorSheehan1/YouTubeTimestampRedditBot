@@ -3,6 +3,7 @@ import os
 import time
 
 # Third party
+import pafy
 import praw
 from dotenv import load_dotenv
 from prawcore.exceptions import RequestException, ResponseException, ServerError
@@ -72,7 +73,7 @@ I'm a bot. Bleep bloop.{'  '}
 
     def log_submission(self, submission, extra_info={}):
         default_info = {
-            "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
+            "reddit_permalink": f"{self.r.config.reddit_url}{submission.permalink}",
             "title": submission.title,
             "url": submission.url,
         }
@@ -83,12 +84,18 @@ I'm a bot. Bleep bloop.{'  '}
         if not is_youtube_url_without_timestamp(submission.url):
             return False
         try:
-            timestamp = get_title_time(submission.title)
+            reddit_title_timestamp = get_title_time(submission.title)
         except TimestampParseError:
             logger.error(f"Failed to parse title {submission.title}. Error:\n{e}")
             return False
-        if not timestamp:
-            self.log_submission(submission, {"msg": "no timestamp found"})
+        if not reddit_title_timestamp:
+            self.log_submission(submission, {"msg": "no timestamp in reddit title"})
+            return False
+        # import pdb; pdb.set_trace()
+        timestamp, raw_timestamp = reddit_title_timestamp
+        yt_metadata = pafy.new(submission.url)
+        if yt_metadata.title.contains(raw_timestamp):
+            self.log_submission(submission, {"msg": "timestamp in youtube title"})
             return False
         if self.already_commented(submission):
             self.log_submission(submission, {"msg": "already commented"})
@@ -147,4 +154,6 @@ if __name__ == "__main__":
     GIT_REPO = os.getenv("git_repo", "")
     Bot(
         CONNECTION_RETRY_LIMIT, CONNECTION_RETRY_WAIT_TIME, COMMENT_WAIT_TIME, GIT_REPO
-    ).main()
+    ).test_specific(
+        "https://www.reddit.com/r/gamingvids/comments/pwpt4k/resident_evil_3_mercenaries_mikhail_a_rank_2103/"
+    )

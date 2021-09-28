@@ -13,6 +13,7 @@ regex = "^2021.8.28"
 requests = "^2.26.0"
 types-requests = "^2.25.8"
 python-dotenv = "^0.19.0"
+pafy = "^0.5.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -33,7 +34,7 @@ ci_lint = "black --check ."
 ci_isort = "isort --check --diff ."
 isort = 'isort .'
 lint = "black ."
-tests = "python -m pytest tests"
+tests = "PAFY_BACKEND=internal python -m pytest tests"
 mypy = "mypy --ignore-missing-imports src"
 obtain_refresh_token = "python scripts/obtain_refresh_token.py"
 detect_secrets = "git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline"

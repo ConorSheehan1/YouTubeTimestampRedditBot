@@ -34,13 +34,19 @@ class TestTimeParsing(unittest.TestCase):
 
     def test_get_title_time(self):
         dicts = [
-            {"input": "Starts at 01:22:35", "expected_output": "1h22m35s"},
-            {"input": "Cool thing at 12:34", "expected_output": "12m34s"},
-            {"input": "23:34 cool thing", "expected_output": "23m34s"},
-            {"input": "The dude at 2:32. Same bro!", "expected_output": "2m32s"},
+            {
+                "input": "Starts at 01:22:35",
+                "expected_output": ("1h22m35s", "01:22:35"),
+            },
+            {"input": "Cool thing at 12:34", "expected_output": ("12m34s", "12:34")},
+            {"input": "23:34 cool thing", "expected_output": ("23m34s", "23:34")},
+            {
+                "input": "The dude at 2:32. Same bro!",
+                "expected_output": ("2m32s", "2:32"),
+            },
             {
                 "input": "Starting at like 3:14, this guy says dumb stuff.",
-                "expected_output": "3m14s",
+                "expected_output": ("3m14s", "3:14"),
             },
             {"input": "The dude at 2:32.Not a timestamp", "expected_output": False},
             {
@@ -58,11 +64,11 @@ class TestTimeParsing(unittest.TestCase):
                 "input": "This has numbers that don't look like time 123.456",
                 "expected_output": False,
             },
+            {"input": "Around 12 seconds something happens", "expected_output": False},
             {
-                "input": "Around 12 seconds something happens",
-                "expected_output": False,
-            },  # will be handled with time phrases
-            {"input": "Documentary at 01:12:34", "expected_output": "1h12m34s"},
+                "input": "Documentary at 01:12:34",
+                "expected_output": ("1h12m34s", "01:12:34"),
+            },
             {"input": "r/hololive (Sep 22 @ 21:00JST)", "expected_output": False},
             {
                 "input": "Documentary [00:12:34]",

@@ -21,6 +21,7 @@ Environment variables
 refresh_token
 client_id
 client_secret
+PAFY_BACKEND="internal"
 # optional
 password # prefer refresh_token instead
 log_level ["INFO", "WARNING", "NOTSET"]
@@ -28,7 +29,7 @@ connection_retry_limit
 # times are in minutes
 connection_retry_wait_time
 comment_wait_time # can hit api limits if < 10
-git_repo
+git_repo # optionally include link to github in comment footer
 ```
 
 ### Tests

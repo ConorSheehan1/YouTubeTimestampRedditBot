@@ -309,6 +309,17 @@ python-versions = ">=3.6"
 pyparsing = ">=2.0.2"
 
 [[package]]
+name = "pafy"
+version = "0.5.5"
+description = "Retrieve YouTube content and metadata"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+youtube-dl-backend = ["youtube-dl"]
+
+[[package]]
 name = "pathspec"
 version = "0.9.0"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -631,7 +642,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.2"
-content-hash = "21e2c37aa8d4e1300cd47267130ae9a9f3dcc74536f2be3bca7840cb83a95c5c"
+content-hash = "a508c6e599b36a3ccb2d290c205ebb23798d7657260dc2b46517bf86a8c20831"
 
 [metadata.files]
 atomicwrites = [
@@ -762,6 +773,10 @@ orderedmultidict = [
 packaging = [
     {file = "packaging-21.0-py3-none-any.whl", hash = "sha256:c86254f9220d55e31cc94d69bade760f0847da8000def4dfe1c6b872fd14ff14"},
     {file = "packaging-21.0.tar.gz", hash = "sha256:7dc96269f53a4ccec5c0670940a4281106dd0bb343f47b7471f779df49c2fbe7"},
+]
+pafy = [
+    {file = "pafy-0.5.5-py2.py3-none-any.whl", hash = "sha256:769e35aa6988686d47fa2ab235d15c9952c7873c470f6a6b05cf6bcd93e62515"},
+    {file = "pafy-0.5.5.tar.gz", hash = "sha256:364f1d1312c89582d97dc7225cf6858cde27cb11dfd64a9c2bab1a2f32133b1e"},
 ]
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
