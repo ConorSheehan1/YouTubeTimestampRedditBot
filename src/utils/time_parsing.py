@@ -10,7 +10,7 @@ import regex
 from src.data.time_zones import time_zone_codes, time_zone_first_words
 
 # note: lowercase for case insensitive match
-excluded_prefixes = ["under", "less than", "in", "live", "live at", "live in"]
+excluded_prefixes = ["under", "less than", "sub", "in", "live", "live at", "live in"]
 # don't need variations of live for suffixes
 excluded_suffixes = ["am", "pm", "midday", "live"]
 excluded_suffixes.extend(time_zone_codes)
