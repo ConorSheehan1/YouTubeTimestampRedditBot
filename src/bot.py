@@ -19,21 +19,23 @@ from src.utils.youtube import (
 
 __version__ = "1.1.0"
 logger = setup_and_get_logger("bot.py")
-load_dotenv()
-# need to cast to int for values coming from .env file
-CONNECTION_RETRY_LIMIT = int(os.getenv("connection_retry_limit", 3))
-CONNECTION_RETRY_WAIT_TIME = int(os.getenv("connection_retry_wait_time", 1))
-COMMENT_WAIT_TIME = int(
-    os.getenv("comment_wait_time", 10)
-)  # can hit api limits if < 10
-GIT_REPO = os.getenv("git_repo")
 
 
 class Bot:
-    def __init__(self):
+    def __init__(
+        self,
+        connection_retry_limit: int = 3,
+        connection_retry_wait_time: int = 1,
+        comment_wait_time: int = 10,
+        git_repo: str = "",
+    ):
         self.blacklist = blacklist
         self.username = "YouTubeTimestampBot"
         self.version = __version__
+        self.connection_retry_limit = connection_retry_limit
+        self.connection_retry_wait_time = connection_retry_wait_time
+        self.comment_wait_time = comment_wait_time
+        self.git_repo = git_repo
 
     def login(self):
         login_kwargs = {
@@ -52,8 +54,8 @@ class Bot:
 
     def generate_footer(self) -> str:
         base = f"version {self.version}"
-        if GIT_REPO:
-            return f"[source]({GIT_REPO}) | {base}"
+        if self.git_repo:
+            return f"[source]({self.git_repo}) | {base}"
         return base
 
     def generate_comment(self, new_url: str) -> str:
@@ -108,13 +110,13 @@ I'm a bot. Bleep bloop.{'  '}
             commented = self.handle_submission(submission)
             if commented:
                 logger.info(
-                    f"comment successful! sleeping for {COMMENT_WAIT_TIME} minutes"
+                    f"comment successful! sleeping for {self.comment_wait_time} minute(s)"
                 )
-                time.sleep(COMMENT_WAIT_TIME * 60)
+                time.sleep(self.comment_wait_time * 60)
 
     def main(self):
         retries = 0
-        while retries < CONNECTION_RETRY_LIMIT:
+        while retries < self.connection_retry_limit:
             try:
                 self.stream_all_subreddits()
             except (
@@ -126,8 +128,8 @@ I'm a bot. Bleep bloop.{'  '}
             ) as e:
                 retries += 1
                 logger.error(f"Error:\n{e}")
-                logger.info(f"Retrying in {CONNECTION_RETRY_WAIT_TIME} minute.")
-                time.sleep(CONNECTION_RETRY_WAIT_TIME * 60)
+                logger.info(f"Retrying in {self.connection_retry_wait_time} minute(s).")
+                time.sleep(self.connection_retry_wait_time * 60)
 
     def test_specific(self, reddit_post_url):
         self.login()
@@ -136,4 +138,14 @@ I'm a bot. Bleep bloop.{'  '}
 
 
 if __name__ == "__main__":
-    Bot().main()
+    load_dotenv()
+    # need to cast to int for values coming from .env file
+    CONNECTION_RETRY_LIMIT = int(os.getenv("connection_retry_limit", 3))
+    CONNECTION_RETRY_WAIT_TIME = int(os.getenv("connection_retry_wait_time", 1))
+    COMMENT_WAIT_TIME = int(
+        os.getenv("comment_wait_time", 10)
+    )  # can hit api limits if < 10
+    GIT_REPO = os.getenv("git_repo")
+    Bot(
+        CONNECTION_RETRY_LIMIT, CONNECTION_RETRY_WAIT_TIME, COMMENT_WAIT_TIME, GIT_REPO
+    ).main()

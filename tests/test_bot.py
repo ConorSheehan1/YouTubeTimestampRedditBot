@@ -6,11 +6,20 @@ from src.bot import Bot
 
 
 class TestBot(unittest.TestCase):
-    def test_generate_comment(self):
+    def test_generate_comment_with_git_repo(self):
         expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s
 ******************************************{'  '}
 I'm a bot. Bleep bloop.{'  '}
-[source](https://github.com/ConorSheehan1/YouTubeTimestampRedditBot) | version 1.1.0
+[source](test) | version 1.1.0
+"""
+        actual = Bot(git_repo="test").generate_comment("http://youtu.be/foo?t-1m2s")
+        assert expected == actual
+
+    def test_generate_comment_without_git_repo(self):
+        expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s
+******************************************{'  '}
+I'm a bot. Bleep bloop.{'  '}
+version 1.1.0
 """
         actual = Bot().generate_comment("http://youtu.be/foo?t-1m2s")
         assert expected == actual
