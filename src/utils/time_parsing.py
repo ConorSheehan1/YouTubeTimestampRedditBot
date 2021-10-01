@@ -21,7 +21,7 @@ excluded_prefixes = [
     "episode",
 ]
 # don't need variations of live for suffixes
-excluded_suffixes = ["am", "pm", "midday", "live"]
+excluded_suffixes = ["am", "pm", "midday", "live", "scale"]
 excluded_suffixes.extend(time_zone_codes)
 excluded_suffixes.extend(time_zone_first_words)
 

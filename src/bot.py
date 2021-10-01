@@ -82,6 +82,10 @@ I'm a bot. Bleep bloop.{'  '}
         logger.info(default_info)
 
     def handle_submission(self, submission) -> Tuple[bool, str]:
+        if submission.subreddit.display_name.lower() in self.blacklist:
+            return False, "subreddit in blacklist"
+        if submission.subreddit.user_is_banned:
+            return False, "user is banned"
         if not is_youtube_url_without_timestamp(submission.url):
             return False, ""
         try:
@@ -108,8 +112,6 @@ I'm a bot. Bleep bloop.{'  '}
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
-            if submission.subreddit.display_name.lower() in self.blacklist:
-                continue
             commented, msg = self.handle_submission(submission)
             if msg:
                 log_submission(submission, {"msg": msg})

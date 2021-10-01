@@ -53,6 +53,7 @@ class TestTimeParsing(unittest.TestCase):
                 "input": "Starting at like 3:14,12 not a timestamp",
                 "expected_output": False,
             },
+            {"input": "1:20 scale", "expected_output": False},
             {"input": "[23:34] cool thing", "expected_output": False},
             {"input": "23:34] cool thing", "expected_output": False},
             {"input": "[23:34 cool thing", "expected_output": False},
