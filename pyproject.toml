@@ -6,7 +6,7 @@ authors = ["Conor Sheehan <conor.sheehan.dev@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.8"
 praw = "^7.4.0"
 furl = "^2.1.2"
 regex = "^2021.8.28"
