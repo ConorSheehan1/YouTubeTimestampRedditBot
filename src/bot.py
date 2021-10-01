@@ -13,7 +13,11 @@ from requests.exceptions import ConnectionError, ReadTimeout
 # YouTubeTimestampRedditBot
 from src.data.subreddits import blacklist
 from src.utils.loggers import setup_and_get_logger
-from src.utils.time_parsing import TimestampParseError, get_title_time
+from src.utils.time_parsing import (
+    TimestampParseError,
+    convert_yt_to_seconds,
+    get_title_time,
+)
 from src.utils.youtube import (
     add_timestamp_to_youtube_url,
     is_youtube_url_without_timestamp,
@@ -98,7 +102,9 @@ I'm a bot. Bleep bloop.{'  '}
         if not reddit_title_timestamp:
             return False, "no timestamp in reddit title"
         timestamp, raw_timestamp = reddit_title_timestamp
-        yt_metadata = YouTube(submission.url).streams.first()
+        yt_metadata = YouTube(submission.url)
+        if convert_yt_to_seconds(raw_timestamp) >= yt_metadata.length:
+            return False, "timestamp at or beyond yt bounds"
         if raw_timestamp in yt_metadata.title:
             return False, "timestamp in youtube title"
         if self.already_commented(submission):

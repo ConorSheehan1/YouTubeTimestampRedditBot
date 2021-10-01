@@ -5,6 +5,7 @@ import unittest
 from src.utils.time_parsing import (
     TimestampParseError,
     convert_numeric_time_to_yt,
+    convert_yt_to_seconds,
     get_title_time,
 )
 
@@ -28,6 +29,29 @@ class TestTimeParsing(unittest.TestCase):
         with self.assertRaises(TimestampParseError) as context:
             # only allow up to hh:mm:ss, anything above is probably not valid time for yt
             convert_numeric_time_to_yt(timestamp)
+
+        # GOTCHA: test will pass regardless of this assertion, if indented within assertRaises context manager
+        self.assertIn(f"Unparsable timestamp '{timestamp}'", str(context.exception))
+
+    def test_convert_yt_to_seconds(self):
+        dicts = [
+            {"input": "01:22:35", "expected_output": 4955},
+            {"input": "12:34", "expected_output": 754},
+            {"input": "12", "expected_output": 12},
+            {"input": "0012", "expected_output": 12},
+            {"input": "00:12", "expected_output": 12},
+            {"input": "01:10", "expected_output": 70},
+        ]
+
+        for (i, d) in enumerate(dicts):
+            with self.subTest(i=i):
+                assert convert_yt_to_seconds(d["input"]) == d["expected_output"]
+
+    def test_convert_yt_to_seconds_error(self):
+        timestamp = "1:2:3:4"
+        with self.assertRaises(TimestampParseError) as context:
+            # only allow up to hh:mm:ss, anything above is probably not valid time for yt
+            convert_yt_to_seconds(timestamp)
 
         # GOTCHA: test will pass regardless of this assertion, if indented within assertRaises context manager
         self.assertIn(f"Unparsable timestamp '{timestamp}'", str(context.exception))

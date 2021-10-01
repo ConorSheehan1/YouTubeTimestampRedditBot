@@ -44,6 +44,21 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
     return "".join(yt_format_strings[::-1])
 
 
+def convert_yt_to_seconds(timestamp: str) -> int:
+    """
+    e.g. arg: 01:10
+    returns: 70
+    """
+    time_components = [str(int(c)) for c in timestamp.split(":")]
+    if len(time_components) > 3:
+        raise TimestampParseError(f"Unparsable timestamp '{timestamp}'")
+    total = 0
+    for (i, time) in enumerate(time_components[::-1]):
+        scale = 60 ** i
+        total += int(time) * scale
+    return total
+
+
 def has_excluded_prefix(title: str, numeric_timestamp: regex.Match) -> bool:
     # handle cases like `beaten under 3:00`
     # https://www.reddit.com/r/bindingofisaac/comments/ptfbgm/beating_greedier_mode_in_under_300_with_only_1/
