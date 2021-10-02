@@ -71,12 +71,12 @@ I'm a bot. Bleep bloop.{'  '}
 {self.generate_footer()}
 """
 
-    def already_commented(self, submission):
+    def already_commented(self, submission) -> bool:
         return any(
             [comment.author.name == self.username for comment in submission.comments]
         )
 
-    def log_submission(self, submission, extra_info={}):
+    def log_submission(self, submission, extra_info: dict = {}):
         default_info = {
             "reddit_permalink": f"{self.r.config.reddit_url}{submission.permalink}",
             "title": submission.title,
@@ -120,7 +120,7 @@ I'm a bot. Bleep bloop.{'  '}
         for submission in self.r.subreddit("all").stream.submissions():
             commented, msg = self.handle_submission(submission)
             if msg:
-                log_submission(submission, {"msg": msg})
+                self.log_submission(submission, {"msg": msg})
             if commented:
                 logger.info(
                     f"comment successful! sleeping for {self.comment_wait_time} minute(s)"
@@ -144,7 +144,7 @@ I'm a bot. Bleep bloop.{'  '}
                 logger.info(f"Retrying in {self.connection_retry_wait_time} minute(s).")
                 time.sleep(self.connection_retry_wait_time * 60)
 
-    def test_specific(self, reddit_post_url):
+    def test_specific(self, reddit_post_url: str):
         self.login()
         submission = self.r.submission(url=reddit_post_url)
         self.handle_submission(submission)
