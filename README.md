@@ -5,6 +5,12 @@
 # YouTubeTimestampRedditBot
 YouTubeTimestampRedditBot is a bot that searches reddit for posts which link to youtube and reference a timestamp, but don't include the timestamp in the link. It comments on those posts with an updated link including the timestamp, hopfully saving people precious milliseconds navigating to the time in the video.
 
+### Installing dependencies
+```bash
+pip install poetry # only if needed
+poetry install
+```
+
 To run the main script
 ```bash
 poetry run python -m src/bot
@@ -28,7 +34,7 @@ connection_retry_limit
 # times are in minutes
 connection_retry_wait_time
 comment_wait_time # can hit api limits if < 10
-git_repo
+git_repo # optionally include link to github in comment footer
 ```
 
 ### Tests

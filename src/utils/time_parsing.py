@@ -1,5 +1,5 @@
 # Standard Library
-from typing import Generator, List, Union
+from typing import Any, List, Literal, Tuple, Union
 
 # Third party
 # required for inifinte width lookback (?<=\s|^)
@@ -21,7 +21,7 @@ excluded_prefixes = [
     "episode",
 ]
 # don't need variations of live for suffixes
-excluded_suffixes = ["am", "pm", "midday", "live"]
+excluded_suffixes = ["am", "pm", "midday", "live", "scale"]
 excluded_suffixes.extend(time_zone_codes)
 excluded_suffixes.extend(time_zone_first_words)
 
@@ -42,6 +42,21 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
     yt_format_tuples = list(zip(time_components[::-1], ["s", "m", "h"]))
     yt_format_strings = ["".join(v) for v in yt_format_tuples]
     return "".join(yt_format_strings[::-1])
+
+
+def convert_yt_to_seconds(timestamp: str) -> int:
+    """
+    e.g. arg: 01:10
+    returns: 70
+    """
+    time_components = [str(int(c)) for c in timestamp.split(":")]
+    if len(time_components) > 3:
+        raise TimestampParseError(f"Unparsable timestamp '{timestamp}'")
+    total = 0
+    for (i, time) in enumerate(time_components[::-1]):
+        scale = 60 ** i
+        total += int(time) * scale
+    return total
 
 
 def has_excluded_prefix(title: str, numeric_timestamp: regex.Match) -> bool:
@@ -65,19 +80,21 @@ def has_excluded_suffix(title: str, numeric_timestamp: regex.Match) -> bool:
     )
 
 
-def get_title_time(title: str) -> Union[str, bool]:
+# https://github.com/python/mypy/issues/6113
+# needs to be python >=3.8
+def get_title_time(title: str) -> Union[Tuple[str, Any], Literal[False]]:
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
     space_or_start = r"(?<=\s|^)"
     hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
     space_punctuation_or_end = r"(?=\s|\.\s|\,\s|$)"
     hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_punctuation_or_end}"
     numeric_timestamp = regex.search(hh_mm_ss_regex, title)
-    if numeric_timestamp:
-        if has_excluded_prefix(title, numeric_timestamp):
-            return False
-        if has_excluded_suffix(title, numeric_timestamp):
-            return False
-        raw_matched_timestamp = numeric_timestamp.group()
-        parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)
-        return parsed_timestamp
-    return False
+    if not numeric_timestamp:
+        return False
+    if has_excluded_prefix(title, numeric_timestamp):
+        return False
+    if has_excluded_suffix(title, numeric_timestamp):
+        return False
+    raw_matched_timestamp = numeric_timestamp.group()
+    parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)
+    return (parsed_timestamp, raw_matched_timestamp)

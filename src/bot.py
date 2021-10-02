@@ -1,17 +1,23 @@
 # Standard Library
 import os
 import time
+from typing import Tuple
 
 # Third party
 import praw
 from dotenv import load_dotenv
 from prawcore.exceptions import RequestException, ResponseException, ServerError
+from pytube import YouTube
 from requests.exceptions import ConnectionError, ReadTimeout
 
 # YouTubeTimestampRedditBot
 from src.data.subreddits import blacklist
 from src.utils.loggers import setup_and_get_logger
-from src.utils.time_parsing import TimestampParseError, get_title_time
+from src.utils.time_parsing import (
+    TimestampParseError,
+    convert_yt_to_seconds,
+    get_title_time,
+)
 from src.utils.youtube import (
     add_timestamp_to_youtube_url,
     is_youtube_url_without_timestamp,
@@ -72,41 +78,49 @@ I'm a bot. Bleep bloop.{'  '}
 
     def log_submission(self, submission, extra_info={}):
         default_info = {
-            "reddit_url": f"{self.r.config.reddit_url}{submission.permalink}",
+            "reddit_permalink": f"{self.r.config.reddit_url}{submission.permalink}",
             "title": submission.title,
             "url": submission.url,
         }
         default_info.update(extra_info)
         logger.info(default_info)
 
-    def handle_submission(self, submission):
+    def handle_submission(self, submission) -> Tuple[bool, str]:
+        if submission.subreddit.display_name.lower() in self.blacklist:
+            return False, "subreddit in blacklist"
+        if submission.subreddit.user_is_banned:
+            return False, "user is banned"
         if not is_youtube_url_without_timestamp(submission.url):
-            return False
+            return False, ""
         try:
-            timestamp = get_title_time(submission.title)
-        except TimestampParseError:
-            logger.error(f"Failed to parse title {submission.title}. Error:\n{e}")
-            return False
-        if not timestamp:
-            self.log_submission(submission, {"msg": "no timestamp found"})
-            return False
+            reddit_title_timestamp = get_title_time(submission.title)
+        except TimestampParseError as e:
+            logger.error(
+                f"Failed to parse reddit title {submission.title}. Error:\n{e}"
+            )
+            return False, ""
+        if not reddit_title_timestamp:
+            return False, "no timestamp in reddit title"
+        timestamp, raw_timestamp = reddit_title_timestamp
+        yt_metadata = YouTube(submission.url)
+        if convert_yt_to_seconds(raw_timestamp) >= yt_metadata.length:
+            return False, "timestamp at or beyond yt bounds"
+        if raw_timestamp in yt_metadata.title:
+            return False, "timestamp in youtube title"
         if self.already_commented(submission):
-            self.log_submission(submission, {"msg": "already commented"})
-            return False
+            return False, "already commented"
         new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
         comment = self.generate_comment(new_url)
         # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
-
-        self.log_submission(submission, {"msg": "!!!got one!!!", "comment": comment})
         submission.reply(comment)
-        return True
+        return True, f"!!got one!! comment: {comment}"
 
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
-            if submission.subreddit.display_name.lower() in self.blacklist:
-                continue
-            commented = self.handle_submission(submission)
+            commented, msg = self.handle_submission(submission)
+            if msg:
+                log_submission(submission, {"msg": msg})
             if commented:
                 logger.info(
                     f"comment successful! sleeping for {self.comment_wait_time} minute(s)"
