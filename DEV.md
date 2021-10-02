@@ -38,6 +38,7 @@ heroku buildpacks:clear
 heroku buildpacks:add https://github.com/moneymeets/python-poetry-buildpack.git
 heroku buildpacks:add heroku/python
 
+# can also set env vars in Heroku UI
 # https://stackoverflow.com/questions/12680859/are-heroku-config-vars-safe-for-sensitive-information
 heroku config:set PYTHON_RUNTIME_VERSION=3.9.7
 heroku config:set client_id=$client_id
