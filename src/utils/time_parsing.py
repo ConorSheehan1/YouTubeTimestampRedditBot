@@ -32,7 +32,7 @@ class TimestampParseError(Exception):
     pass
 
 
-def convert_numeric_time_to_yt(timestamp: str) -> str:
+def convert_timestamp_to_yt(timestamp: str) -> str:
     """
     e.g. arg: 01:22:35
     returns:  01h22m35s
@@ -46,7 +46,7 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
     return "".join(yt_format_strings[::-1])
 
 
-def convert_yt_to_seconds(timestamp: str) -> int:
+def convert_timestamp_to_seconds(timestamp: str) -> int:
     """
     e.g. arg: 01:10
     returns: 70
@@ -113,5 +113,7 @@ def get_title_time(title: str) -> Union[Tuple[str, Any], Literal[False]]:
     raw_matched_timestamp = numeric_timestamp.group()
     if not is_valid_time(raw_matched_timestamp):
         return False
-    parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)
+    if convert_timestamp_to_seconds(raw_matched_timestamp) == 0:
+        return False
+    parsed_timestamp = convert_timestamp_to_yt(raw_matched_timestamp)
     return (parsed_timestamp, raw_matched_timestamp)
