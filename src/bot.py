@@ -23,7 +23,7 @@ from src.utils.youtube import (
     is_youtube_url_without_timestamp,
 )
 
-__version__ = "2.0.1"
+__version__ = "2.1.0"
 logger = setup_and_get_logger("bot.py")
 
 
