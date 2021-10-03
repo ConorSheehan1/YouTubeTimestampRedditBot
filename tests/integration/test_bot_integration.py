@@ -38,3 +38,14 @@ class TestBotIntegration(unittest.TestCase):
             False,
             "timestamp in youtube title",
         )
+
+    def test_timestamp_out_of_bounds(self):
+        # length is 24:37
+        submission = MockSubmission(
+            title="Resident Evil 3 Mercenaries - Mikhail A Rank 24:37",
+            url="https://www.youtube.com/watch?v=bG4gZ8hXS0M",
+        )
+        assert Bot().handle_submission(submission) == (
+            False,
+            "timestamp at or beyond yt bounds",
+        )

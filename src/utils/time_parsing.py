@@ -1,4 +1,5 @@
 # Standard Library
+import time
 from typing import Any, List, Literal, Tuple, Union
 
 # Third party
@@ -80,12 +81,25 @@ def has_excluded_suffix(title: str, numeric_timestamp: regex.Match) -> bool:
     )
 
 
+def is_valid_time(timestamp: str) -> bool:
+    format_parts = ["S", "M", "H"][: timestamp.count(":") + 1]
+    time_format = f"%{':%'.join(format_parts[::-1])}"
+    try:
+        time.strptime(timestamp, time_format)
+        return True
+    except:
+        return False
+
+
 # https://github.com/python/mypy/issues/6113
 # needs to be python >=3.8
 def get_title_time(title: str) -> Union[Tuple[str, Any], Literal[False]]:
     # https://stackoverflow.com/questions/6713310/regex-specify-space-or-start-of-string-and-space-or-end-of-string
     space_or_start = r"(?<=\s|^)"
-    hh_mm_ss = r"(((?:[0-9]?[0-9]:)?)([0-1]?[0-9]|2[0-3]):[0-5][0-9])"
+    # :[0-5][0-9] required seconds
+    # ([0-5]?[0-9]) required minutes with optional leading 0
+    # ((?:[0-2]?[0-9]:)?) optional hours up to 29 (over 23 caught by is_valid_time)
+    hh_mm_ss = r"(((?:[0-2]?[0-9]:)?)([0-5]?[0-9]):[0-5][0-9])"
     space_punctuation_or_end = r"(?=\s|\.\s|\,\s|$)"
     hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_punctuation_or_end}"
     numeric_timestamp = regex.search(hh_mm_ss_regex, title)
@@ -96,5 +110,7 @@ def get_title_time(title: str) -> Union[Tuple[str, Any], Literal[False]]:
     if has_excluded_suffix(title, numeric_timestamp):
         return False
     raw_matched_timestamp = numeric_timestamp.group()
+    if not is_valid_time(raw_matched_timestamp):
+        return False
     parsed_timestamp = convert_numeric_time_to_yt(raw_matched_timestamp)
     return (parsed_timestamp, raw_matched_timestamp)

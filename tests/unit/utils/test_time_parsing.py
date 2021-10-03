@@ -77,12 +77,19 @@ class TestTimeParsing(unittest.TestCase):
                 "input": "Starting at like 3:14,12 not a timestamp",
                 "expected_output": False,
             },
-            {"input": "1:20 scale", "expected_output": False},
+            {"input": "bad time 00:61", "expected_output": False},
+            {"input": "bad time 60:51", "expected_output": False},
+            {"input": "bad time 25:50:51", "expected_output": False},
+            {"input": "days not supported yet 2:21:50:51", "expected_output": False},
             {"input": "[23:34] cool thing", "expected_output": False},
             {"input": "23:34] cool thing", "expected_output": False},
             {"input": "[23:34 cool thing", "expected_output": False},
             {"input": "Cool thing at 60:34", "expected_output": False},
-            {"input": "Cool thing around 24:34", "expected_output": False},
+            {
+                "input": "Cool thing around 24:34",
+                "expected_output": ("24m34s", "24:34"),
+            },
+            {"input": "Cool thing around 24:64", "expected_output": False},
             {"input": "Not a time [34m]", "expected_output": False},
             {"input": "This has no numbers in it", "expected_output": False},
             {
@@ -100,6 +107,7 @@ class TestTimeParsing(unittest.TestCase):
                 "expected_output": False,
             },  # r/documentaries format
             # excluded prefixes
+            {"input": "1:20 scale", "expected_output": False},
             {"input": "beaten in under 3:00", "expected_output": False},
             {"input": "finished in less than 3:00", "expected_output": False},
             {"input": "done in 3:00", "expected_output": False},
