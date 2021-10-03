@@ -1,23 +1,50 @@
-# Installing dependencies
+## Installing dependencies
 ```bash
-pip install poetry # only if needed
+pip install poetry
 poetry install
 ```
 
-## GitHooks
+## To run the main script
+```bash
+poetry run python -m src/bot
+# note: running src/bot.py directly will not work, since there a sibling modules which rely on each other (src.utils imports src.data)
+# 1. if you don't have a refresh_token run `poetry run task obtain_refresh_token`
+# 2. add environment variables to the .env file, or pass them directly. e.g.
+refresh_token="token" client_secret='$secret' client_id='$id' poetry run python -m src/bot
+```
+
+## Environment variables
+```bash
+# required
+refresh_token
+client_id
+client_secret
+# optional
+password # prefer refresh_token instead
+log_level ["INFO", "WARNING", "NOTSET"]
+connection_retry_limit
+# times are in minutes
+connection_retry_wait_time
+comment_wait_time # can hit api limits if < 10
+git_repo # optionally include link to github in comment footer
+```
+
+### Tests
+```bash
+poetry run task tests
+```
+
+### Linting
+```bash
+poetry run task lint
+poetry run task isort
+poetry run task mypy
+```
+
+### GitHooks
 To setup git hooks run:
 ```bash
 poetry run pre-commit install
-```
-
-# Reddit
-To see app settings, go to https://www.reddit.com/prefs/apps
-Docs: https://praw.readthedocs.io/en/stable/getting_started/quick_start.html
-YT example: https://www.youtube.com/watch?v=3FpqXyJsd1s
-
-## Refresh token
-```bash
-poetry run task obtain_refresh_token
 ```
 
 ### Version management
@@ -27,6 +54,24 @@ poetry run bumpversion --commit --tag patch
 # once the tag is built by the release action, check the attached .tar is installable.
 # e.g. `pip install git+https://github.com/ConorSheehan1/shot@v0.1.1`
 # if it is update the release draft and pre-release state.
+```
+### Detect secrets
+```bash
+# scan all files
+git ls-files -z | xargs -0 poetry run detect-secrets-hook --baseline .secrets.baseline
+
+# create new baseline
+poetry run detect-secrets scan --baseline .secrets.baseline
+```
+
+# Reddit
+To see app settings, go to https://www.reddit.com/prefs/apps  
+Docs: https://praw.readthedocs.io/en/stable/getting_started/quick_start.html  
+YT example: https://www.youtube.com/watch?v=3FpqXyJsd1s
+
+## Refresh token
+```bash
+poetry run task obtain_refresh_token
 ```
 
 # Heroku setup
@@ -47,12 +92,3 @@ heroku config:set refresh_token=$refresh_token
 ```
 
 Note commits to main branch are automatically deployed using heroku pipeline.
-
-# Detect secrets
-```bash
-# scan all files
-git ls-files -z | xargs -0 poetry run detect-secrets-hook --baseline .secrets.baseline
-
-# create new baseline
-poetry run detect-secrets scan --baseline .secrets.baseline
-```
