@@ -18,8 +18,9 @@ excluded_prefixes = [
     "in",
     "live",
     "live at",
-    "live in",
     "episode",
+    "broke",
+    "broke the",
 ]
 # don't need variations of live for suffixes
 excluded_suffixes = ["am", "pm", "midday", "live", "scale"]
@@ -36,7 +37,7 @@ def convert_numeric_time_to_yt(timestamp: str) -> str:
     e.g. arg: 01:22:35
     returns:  01h22m35s
     """
-    # cast to int and back for leading 0s
+    # cast to int and back to strip leading 0s but keep 0 itself
     time_components = [str(int(c)) for c in timestamp.split(":")]
     if len(time_components) > 3:
         raise TimestampParseError(f"Unparsable timestamp '{timestamp}'")
