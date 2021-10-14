@@ -1,4 +1,5 @@
 # Standard Library
+import logging
 import os
 import time
 from typing import Tuple
@@ -24,7 +25,7 @@ from src.utils.youtube import (
 )
 
 __version__ = "2.1.0"
-logger = setup_and_get_logger("bot.py")
+logger, should_log_submission = setup_and_get_logger("bot.py")
 
 
 class Bot:
@@ -42,6 +43,7 @@ class Bot:
         self.connection_retry_wait_time = connection_retry_wait_time
         self.comment_wait_time = comment_wait_time
         self.git_repo = git_repo
+        self.should_log_submission = should_log_submission
 
     def login(self):
         login_kwargs = {
@@ -71,6 +73,13 @@ I'm a bot. Bleep bloop.{'  '}
 {self.generate_footer()}
 """
 
+    def delete_bad_comments(self):
+        for comment in self.r.user.me().comments.new(limit=25):
+            if comment.score < 1:
+                logger.info(f"Deleting comment with low score {comment.score}")
+            if any(["bad bot" in reply.body for reply in comment.replies]):
+                logger.info(f"Deleting comment with 'bad bot' reply")
+
     def already_commented(self, submission) -> bool:
         return any(
             [comment.author.name == self.username for comment in submission.comments]
@@ -83,7 +92,7 @@ I'm a bot. Bleep bloop.{'  '}
             "url": submission.url,
         }
         default_info.update(extra_info)
-        logger.info(default_info)
+        logger.debug(default_info)
 
     def handle_submission(self, submission) -> Tuple[bool, str]:
         if submission.subreddit.display_name.lower() in self.blacklist:
@@ -118,9 +127,13 @@ I'm a bot. Bleep bloop.{'  '}
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
+            print("-", end="", flush=True)
             commented, msg = self.handle_submission(submission)
             if msg:
-                self.log_submission(submission, {"msg": msg})
+                if self.should_log_submission:
+                    self.log_submission(submission, {"msg": msg})
+                else:
+                    print(".", end="", flush=True)
             if commented:
                 logger.info(
                     f"comment successful! sleeping for {self.comment_wait_time} minute(s)"

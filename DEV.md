@@ -21,7 +21,7 @@ client_id
 client_secret
 # optional
 password # prefer refresh_token instead
-log_level ["INFO", "WARNING", "NOTSET"]
+log_level ["NOTSET", "DEBUG", "INFO", "WARNING"] # https://docs.python.org/3/library/logging.html#levels
 connection_retry_limit
 # times are in minutes
 connection_retry_wait_time
