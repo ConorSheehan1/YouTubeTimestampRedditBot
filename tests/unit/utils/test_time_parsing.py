@@ -134,6 +134,8 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "thing at 3:00 pm", "expected_output": False},
             {"input": "thing at 3:00 PM", "expected_output": False},
             {"input": "thing at 3:00 am", "expected_output": False},
+            {"input": "thing at 3:00 a.m", "expected_output": False},
+            {"input": "thing at 3:00 p.m", "expected_output": False},
             {"input": "thing at 3:00 midday", "expected_output": False},
             {"input": "thing at 3:00 jst", "expected_output": False},
             {"input": "thing at 3:00 EST", "expected_output": False},
