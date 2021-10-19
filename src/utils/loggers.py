@@ -3,8 +3,7 @@ import logging
 import os
 
 
-def setup_and_get_logger(name: str):
+def setup_and_get_logger(name: str, loglevel: str):
     logger = logging.getLogger(name)
-    LOGLEVEL = os.environ.get("log_level", "INFO").upper()
-    logging.basicConfig(level=LOGLEVEL)
+    logging.basicConfig(level=loglevel)
     return logger

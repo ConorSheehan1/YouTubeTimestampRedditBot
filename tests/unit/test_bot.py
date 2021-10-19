@@ -3,6 +3,7 @@ import unittest
 
 # YouTubeTimestampRedditBot
 from src.bot import Bot
+from tests.mocks import MockComment
 
 
 class TestBot(unittest.TestCase):
@@ -23,3 +24,20 @@ version 2.1.0
 """
         actual = Bot().generate_comment("http://youtu.be/foo?t-1m2s")
         assert expected == actual
+
+    def test_should_delete_comment(self):
+        comments = [
+            {
+                "comment": MockComment("test body", 0, []),
+                "expected_output": "Deleting comment with low score 0",
+            },
+            {
+                "comment": MockComment("test body", 1, [MockComment("bad bot")]),
+                "expected_output": "Deleting comment with 'bad bot' reply",
+            },
+            {"comment": MockComment("test body", 1, []), "expected_output": ""},
+        ]
+        for (i, d) in enumerate(comments):
+            with self.subTest(i=i):
+                actual = Bot().should_delete_comment(d["comment"])
+                assert actual == d["expected_output"]

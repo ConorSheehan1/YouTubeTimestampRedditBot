@@ -1,4 +1,6 @@
 # Standard Library
+import json
+import logging
 import os
 import time
 from typing import Tuple
@@ -24,7 +26,8 @@ from src.utils.youtube import (
 )
 
 __version__ = "2.1.0"
-logger = setup_and_get_logger("bot.py")
+LOGLEVEL = os.environ.get("log_level", "INFO").upper()
+logger = setup_and_get_logger("bot.py", LOGLEVEL)
 
 
 class Bot:
@@ -71,19 +74,45 @@ I'm a bot. Bleep bloop.{'  '}
 {self.generate_footer()}
 """
 
+    def delete_bad_comments(self):
+        for comment in self.r.user.me().comments.new(limit=25):
+            reason_to_delete = self.should_delete_comment(comment)
+            if reason_to_delete:
+                logger.info(reason_to_delete)
+                # json.dumps gives dict -> str formatting better than pprint
+                comment_details = json.dumps(self.comment_to_dict(comment), indent=4)
+                # pm bot self with comment details before deleting
+                self.r.redditor(self.username).message(
+                    reason_to_delete, comment_details
+                )
+                comment.delete()
+
+    def should_delete_comment(self, comment) -> str:
+        if comment.score < 1:
+            return f"Deleting comment with low score {comment.score}"
+        if any(["bad bot" in reply.body.lower() for reply in comment.replies]):
+            return "Deleting comment with 'bad bot' reply"
+        return ""
+
     def already_commented(self, submission) -> bool:
         return any(
             [comment.author.name == self.username for comment in submission.comments]
         )
 
-    def log_submission(self, submission, extra_info: dict = {}):
-        default_info = {
+    def submission_to_dict(self, submission, extra_info: dict = {}) -> dict:
+        return {
             "reddit_permalink": f"{self.r.config.reddit_url}{submission.permalink}",
             "title": submission.title,
             "url": submission.url,
         }
-        default_info.update(extra_info)
-        logger.info(default_info)
+
+    def comment_to_dict(self, comment) -> dict:
+        return {
+            "body": comment.body,
+            "score": comment.score,
+            "replies": [child.body for child in comment.replies],
+            "thread": self.submission_to_dict(comment.submission),
+        }
 
     def handle_submission(self, submission) -> Tuple[bool, str]:
         if submission.subreddit.display_name.lower() in self.blacklist:
@@ -111,21 +140,27 @@ I'm a bot. Bleep bloop.{'  '}
             return False, "already commented"
         new_url = add_timestamp_to_youtube_url(submission.url, timestamp)
         comment = self.generate_comment(new_url)
-        # https://www.reddit.com/r/redditdev/comments/ajme22/praw_get_the_posts_actual_url/eewp6ee?utm_source=share&utm_medium=web2x&context=3
         submission.reply(comment)
         return True, f"!!got one!! comment: {comment}"
 
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
+            print("-", end="", flush=True)
             commented, msg = self.handle_submission(submission)
             if msg:
-                self.log_submission(submission, {"msg": msg})
+                if getattr(logging, LOGLEVEL) <= logging.DEBUG:
+                    submission_dict = self.submission_to_dict(submission)
+                    submission_dict.update({"msg": msg})
+                    logger.debug(submission_dict)
+                else:
+                    print(".", end="", flush=True)
             if commented:
                 logger.info(
                     f"comment successful! sleeping for {self.comment_wait_time} minute(s)"
                 )
                 time.sleep(self.comment_wait_time * 60)
+            self.delete_bad_comments()
 
     def main(self):
         retries = 0
@@ -155,9 +190,8 @@ if __name__ == "__main__":
     # need to cast to int for values coming from .env file
     CONNECTION_RETRY_LIMIT = int(os.getenv("connection_retry_limit", 3))
     CONNECTION_RETRY_WAIT_TIME = int(os.getenv("connection_retry_wait_time", 1))
-    COMMENT_WAIT_TIME = int(
-        os.getenv("comment_wait_time", 10)
-    )  # can hit api limits if < 10
+    # can hit api limits if < 10
+    COMMENT_WAIT_TIME = int(os.getenv("comment_wait_time", 10))
     GIT_REPO = os.getenv("git_repo", "")
     Bot(
         CONNECTION_RETRY_LIMIT, CONNECTION_RETRY_WAIT_TIME, COMMENT_WAIT_TIME, GIT_REPO

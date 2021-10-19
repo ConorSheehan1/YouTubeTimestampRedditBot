@@ -21,7 +21,7 @@ client_id
 client_secret
 # optional
 password # prefer refresh_token instead
-log_level ["INFO", "WARNING", "NOTSET"]
+log_level ["NOTSET", "DEBUG", "INFO", "WARNING"] # https://docs.python.org/3/library/logging.html#levels
 connection_retry_limit
 # times are in minutes
 connection_retry_wait_time
@@ -92,3 +92,16 @@ heroku config:set refresh_token=$refresh_token
 ```
 
 Note commits to main branch are automatically deployed using heroku pipeline.
+
+# Design
+This bot has been designed to avoid external dependencies.
+It currently relies on python, its packages, and a reddit account.
+It does not rely on:
+1. Databases
+  Some bots use a database to keep track of submissions they've already seen.
+  This bot checks if it has already commented on a thread.
+2. Email services
+  Some bots send emails before deleting own comments.
+  This bot sends a pm to itself for later debugging.
+  Note: now that the bot deletes its own comments, this may cause issues.
+  If it does, or if changing from new to rising causes it to happen, a db may be required.
