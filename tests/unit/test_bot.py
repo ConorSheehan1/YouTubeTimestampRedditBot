@@ -1,5 +1,10 @@
 # Standard Library
 import unittest
+from datetime import datetime
+from unittest.mock import patch
+
+# Third party
+from freezegun import freeze_time
 
 # YouTubeTimestampRedditBot
 from src.bot import Bot
@@ -41,3 +46,30 @@ version 2.2.0
             with self.subTest(i=i):
                 actual = Bot().should_delete_comment(d["comment"])
                 assert actual == d["expected_output"]
+
+    @patch("time.sleep")
+    def test_handle_comment_sleep(self, patched_time_sleep):
+        """
+        bot commented at 12:00 and found another post to comment on at 12:01.
+        should sleep for 9 minutes.
+        """
+        bot = Bot(comment_wait_time=10)
+        with freeze_time("2020-01-01 12:00"):
+            bot.last_commented = datetime.now()
+        with freeze_time("2020-01-01 12:01"):
+            bot.handle_comment_sleep()
+        # sleep for 9 minutes
+        patched_time_sleep.assert_called_with(9 * 60)
+
+    @patch("time.sleep")
+    def test_handle_comment_no_sleep(self, patched_time_sleep):
+        """
+        bot should not sleep if the last comment was longer ago than comment_wait_time
+        """
+        bot = Bot(comment_wait_time=10)
+        with freeze_time("2020-01-01 12:00"):
+            bot.last_commented = datetime.now()
+        with freeze_time("2020-01-01 12:10"):
+            bot.handle_comment_sleep()
+        # should not sleep at all since last comment was 10 minutes ago
+        assert not patched_time_sleep.called

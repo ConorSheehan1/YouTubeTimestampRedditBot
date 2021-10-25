@@ -24,7 +24,7 @@ repos:
     hooks:
     -   id: mypy
         args: [--no-strict-optional, --ignore-missing-imports]
-        additional_dependencies: [types-requests]
+        additional_dependencies: [types-requests, types-freezegun]
 -   repo: https://github.com/Yelp/detect-secrets
     rev: v1.0.1
     hooks:

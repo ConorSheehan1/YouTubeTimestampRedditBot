@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+from datetime import datetime
 from typing import Tuple
 
 # Third party
@@ -45,6 +46,8 @@ class Bot:
         self.connection_retry_wait_time = connection_retry_wait_time
         self.comment_wait_time = comment_wait_time
         self.git_repo = git_repo
+        self.last_commented = datetime.now()
+        self.last_checked_bad_comments = datetime.now()
 
     def login(self):
         login_kwargs = {
@@ -143,6 +146,24 @@ I'm a bot. Bleep bloop.{'  '}
         submission.reply(comment)
         return True, f"!!got one!! comment: {comment}"
 
+    def handle_comment_sleep(self):
+        """
+        determine how long bot should sleep for after commenting.
+        e.g. comment_wait_time = 10 (minutes)
+        last_commented 1 minute ago
+        sleep for 9 minutes before commenting again
+        """
+        now = datetime.now()
+        delta = now - self.last_commented
+        self.last_commented = now
+        max_seconds_to_sleep = self.comment_wait_time * 60
+        if delta.seconds < max_seconds_to_sleep:
+            min_seconds_to_sleep = max_seconds_to_sleep - delta.seconds
+            logger.info(
+                f"comment successful! sleeping for {min_seconds_to_sleep} second(s)"
+            )
+            time.sleep(min_seconds_to_sleep)
+
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
@@ -156,10 +177,7 @@ I'm a bot. Bleep bloop.{'  '}
                 else:
                     print(".", end="", flush=True)
             if commented:
-                logger.info(
-                    f"comment successful! sleeping for {self.comment_wait_time} minute(s)"
-                )
-                time.sleep(self.comment_wait_time * 60)
+                self.handle_comment_sleep()
             self.delete_bad_comments()
 
     def main(self):
@@ -179,7 +197,7 @@ I'm a bot. Bleep bloop.{'  '}
                 logger.info(f"Retrying in {self.connection_retry_wait_time} minute(s).")
                 time.sleep(self.connection_retry_wait_time * 60)
 
-    def test_specific(self, reddit_post_url: str):
+    def handle_specific_submission(self, reddit_post_url: str):
         self.login()
         submission = self.r.submission(url=reddit_post_url)
         self.handle_submission(submission)
