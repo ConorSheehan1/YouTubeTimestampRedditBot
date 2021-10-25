@@ -7,4 +7,9 @@
 # YouTubeTimestampRedditBot
 Sourecode for [u/YouTubeTimestampBot](https://www.reddit.com/user/YouTubeTimestampBot)
 
-`YouTubeTimestampRedditBot` is a bot that searches reddit for posts which link to YouTube and reference a timestamp, but don't include the timestamp in the link. It comments on those posts with an updated link including the timestamp, hopefully saving people precious milliseconds navigating to the time in the video.
+`YouTubeTimestampRedditBot` is a bot that searches [reddit](https://www.reddit.com/) for posts which: 
+1. link to YouTube
+2. reference a timestamp
+3. don't embed the timestamp in the link
+
+It comments on those posts with an updated link that has the timestamp embedded, hopefully saving people precious milliseconds navigating to the time in the video.
