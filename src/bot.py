@@ -48,6 +48,7 @@ class Bot:
         self.git_repo = git_repo
         self.last_commented = datetime.now()
         self.last_checked_bad_comments = datetime.now()
+        self.stream_log = ""
 
     def login(self):
         login_kwargs = {
@@ -164,10 +165,17 @@ I'm a bot. Bleep bloop.{'  '}
             )
             time.sleep(min_seconds_to_sleep)
 
+    def append_to_stream_log(self, v: str):
+        # short output to avoid flooding logs but show bot is still running and parsing posts
+        self.stream_log += v
+        if len(self.stream_log) > 50:
+            logger.info(self.stream_log)
+            self.stream_log = ""
+
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
-            print("-", end="", flush=True)
+            self.append_to_stream_log("-")
             commented, msg = self.handle_submission(submission)
             if msg:
                 if getattr(logging, LOGLEVEL) <= logging.DEBUG:
@@ -175,7 +183,7 @@ I'm a bot. Bleep bloop.{'  '}
                     submission_dict.update({"msg": msg})
                     logger.debug(submission_dict)
                 else:
-                    print(".", end="", flush=True)
+                    self.append_to_stream_log(".")
             if commented:
                 self.handle_comment_sleep()
             self.delete_bad_comments()
