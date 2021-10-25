@@ -1,7 +1,7 @@
 # Standard Library
 import unittest
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 # Third party
 from freezegun import freeze_time
@@ -73,3 +73,27 @@ version 2.2.0
             bot.handle_comment_sleep()
         # should not sleep at all since last comment was 10 minutes ago
         assert not patched_time_sleep.called
+
+    def test_handle_delete_bad_comments(self):
+        """
+        bot should check for bad comments if last checked > 10 minutes ago
+        """
+        bot = Bot()
+        bot.delete_bad_comments = MagicMock()
+        with freeze_time("2020-01-01 12:00"):
+            bot.last_checked_bad_comments = datetime.now()
+        with freeze_time("2020-01-01 12:10"):
+            bot.handle_delete_bad_comments()
+        assert bot.delete_bad_comments.called
+
+    def test_handle_delete_bad_comments_not_run(self):
+        """
+        bot should not check for bad comments if last checked < 10 minutes ago
+        """
+        bot = Bot(check_bad_comment_wait_time=10)
+        bot.delete_bad_comments = MagicMock()
+        with freeze_time("2020-01-01 12:00"):
+            bot.last_checked_bad_comments = datetime.now()
+        with freeze_time("2020-01-01 12:09"):
+            bot.handle_delete_bad_comments()
+        assert not bot.delete_bad_comments.called
