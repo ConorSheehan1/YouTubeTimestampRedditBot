@@ -26,6 +26,7 @@ connection_retry_limit
 # times are in minutes
 connection_retry_wait_time
 comment_wait_time # can hit api limits if < 10
+check_bad_comment_wait_time
 git_repo # optionally include link to github in comment footer
 ```
 

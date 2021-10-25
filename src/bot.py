@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import time
+from datetime import datetime
 from typing import Tuple
 
 # Third party
@@ -36,6 +37,7 @@ class Bot:
         connection_retry_limit: int = 3,
         connection_retry_wait_time: int = 1,
         comment_wait_time: int = 10,
+        check_bad_comment_wait_time: int = 10,
         git_repo: str = "",
     ):
         self.blacklist = blacklist
@@ -44,7 +46,11 @@ class Bot:
         self.connection_retry_limit = connection_retry_limit
         self.connection_retry_wait_time = connection_retry_wait_time
         self.comment_wait_time = comment_wait_time
+        self.check_bad_comment_wait_time = check_bad_comment_wait_time
         self.git_repo = git_repo
+        self.last_commented = datetime.now()
+        self.last_checked_bad_comments = datetime.now()
+        self.stream_log = ""
 
     def login(self):
         login_kwargs = {
@@ -143,10 +149,48 @@ I'm a bot. Bleep bloop.{'  '}
         submission.reply(comment)
         return True, f"!!got one!! comment: {comment}"
 
+    def handle_comment_sleep(self):
+        """
+        determine how long bot should sleep for after commenting.
+        e.g. comment_wait_time = 10 (minutes)
+        last_commented 1 minute ago
+        sleep for 9 minutes before commenting again
+        """
+        now = datetime.now()
+        delta = now - self.last_commented
+        self.last_commented = now
+        max_seconds_to_sleep = self.comment_wait_time * 60
+        if delta.seconds < max_seconds_to_sleep:
+            min_seconds_to_sleep = max_seconds_to_sleep - delta.seconds
+            logger.info(
+                f"comment successful! sleeping for {min_seconds_to_sleep} second(s)"
+            )
+            time.sleep(min_seconds_to_sleep)
+
+    def handle_delete_bad_comments(self):
+        """
+        determine if bot should check for bad comments.
+        only check every 10 minutes to avoid rate limits.
+        """
+        check_bad_comments_seconds = self.check_bad_comment_wait_time * 60
+        now = datetime.now()
+        delta = now - self.last_checked_bad_comments
+        if delta.seconds >= check_bad_comments_seconds:
+            logger.info("checking for bad comments")
+            self.delete_bad_comments()
+            self.last_checked_bad_comments = datetime.now()
+
+    def append_to_stream_log(self, v: str):
+        # short output to avoid flooding logs but show bot is still running and parsing posts
+        self.stream_log += v
+        if len(self.stream_log) > 50:
+            logger.info(self.stream_log)
+            self.stream_log = ""
+
     def stream_all_subreddits(self):
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
-            print("-", end="", flush=True)
+            self.append_to_stream_log("-")
             commented, msg = self.handle_submission(submission)
             if msg:
                 if getattr(logging, LOGLEVEL) <= logging.DEBUG:
@@ -154,13 +198,10 @@ I'm a bot. Bleep bloop.{'  '}
                     submission_dict.update({"msg": msg})
                     logger.debug(submission_dict)
                 else:
-                    print(".", end="", flush=True)
+                    self.append_to_stream_log(".")
             if commented:
-                logger.info(
-                    f"comment successful! sleeping for {self.comment_wait_time} minute(s)"
-                )
-                time.sleep(self.comment_wait_time * 60)
-            self.delete_bad_comments()
+                self.handle_comment_sleep()
+            self.handle_delete_bad_comments()
 
     def main(self):
         retries = 0
@@ -179,7 +220,7 @@ I'm a bot. Bleep bloop.{'  '}
                 logger.info(f"Retrying in {self.connection_retry_wait_time} minute(s).")
                 time.sleep(self.connection_retry_wait_time * 60)
 
-    def test_specific(self, reddit_post_url: str):
+    def handle_specific_submission(self, reddit_post_url: str):
         self.login()
         submission = self.r.submission(url=reddit_post_url)
         self.handle_submission(submission)
@@ -192,7 +233,12 @@ if __name__ == "__main__":
     CONNECTION_RETRY_WAIT_TIME = int(os.getenv("connection_retry_wait_time", 1))
     # can hit api limits if < 10
     COMMENT_WAIT_TIME = int(os.getenv("comment_wait_time", 10))
+    CHECK_BAD_COMMENT_WAIT_TIME = int(os.getenv("check_bad_comment_wait_time", 10))
     GIT_REPO = os.getenv("git_repo", "")
     Bot(
-        CONNECTION_RETRY_LIMIT, CONNECTION_RETRY_WAIT_TIME, COMMENT_WAIT_TIME, GIT_REPO
+        CONNECTION_RETRY_LIMIT,
+        CONNECTION_RETRY_WAIT_TIME,
+        COMMENT_WAIT_TIME,
+        CHECK_BAD_COMMENT_WAIT_TIME,
+        GIT_REPO,
     ).main()
