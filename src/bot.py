@@ -9,13 +9,19 @@ from typing import Tuple
 # Third party
 import praw
 from dotenv import load_dotenv
+from praw.models import Comment, Submission
 from prawcore.exceptions import RequestException, ResponseException, ServerError
 from pytube import YouTube
 from requests.exceptions import ConnectionError, ReadTimeout
 
 # YouTubeTimestampRedditBot
 from src.data.subreddits import blacklist
-from src.utils.loggers import setup_and_get_logger
+from src.utils.loggers import (
+    comment_rich_repr,
+    generate_submission_rich_repr,
+    rich_to_str,
+    setup_and_get_logger,
+)
 from src.utils.time_parsing import (
     TimestampParseError,
     convert_timestamp_to_seconds,
@@ -66,17 +72,24 @@ class Bot:
         else:
             login_kwargs["password"] = os.getenv("password")
         self.r = praw.Reddit(**login_kwargs)
+        # monkeypatch praw models for better logging
+        Submission.__rich_repr__ = generate_submission_rich_repr(
+            self.r.config.reddit_url
+        )
+        Submission.__str__ = rich_to_str
+        Comment.__rich_repr__ = comment_rich_repr
+        Comment.__str__ = rich_to_str
 
     def generate_footer(self) -> str:
-        base = f"version {self.version}"
+        version = f"version {self.version}"
         if self.git_repo:
-            return f"[source]({self.git_repo}) | {base}"
-        return base
+            return f"[source]({self.git_repo}) | [issues]({self.git_repo}/issues) | {version}"
+        return version
 
     def generate_comment(self, new_url: str) -> str:
-        return f"""Link that starts at the time OP mentioned: {new_url}
+        return f"""Link that starts at the time OP mentioned: {new_url}{'  '}
 ******************************************{'  '}
-I'm a bot. Bleep bloop.{'  '}
+I'm a bot, bleep bloop.{'  '}
 {self.generate_footer()}
 """
 
@@ -85,12 +98,8 @@ I'm a bot. Bleep bloop.{'  '}
             reason_to_delete = self.should_delete_comment(comment)
             if reason_to_delete:
                 logger.info(reason_to_delete)
-                # json.dumps gives dict -> str formatting better than pprint
-                comment_details = json.dumps(self.comment_to_dict(comment), indent=4)
                 # pm bot self with comment details before deleting
-                self.r.redditor(self.username).message(
-                    reason_to_delete, comment_details
-                )
+                self.r.redditor(self.username).message(reason_to_delete, str(comment))
                 comment.delete()
 
     def should_delete_comment(self, comment) -> str:
@@ -104,21 +113,6 @@ I'm a bot. Bleep bloop.{'  '}
         return any(
             [comment.author.name == self.username for comment in submission.comments]
         )
-
-    def submission_to_dict(self, submission, extra_info: dict = {}) -> dict:
-        return {
-            "reddit_permalink": f"{self.r.config.reddit_url}{submission.permalink}",
-            "title": submission.title,
-            "url": submission.url,
-        }
-
-    def comment_to_dict(self, comment) -> dict:
-        return {
-            "body": comment.body,
-            "score": comment.score,
-            "replies": [child.body for child in comment.replies],
-            "thread": self.submission_to_dict(comment.submission),
-        }
 
     def handle_submission(self, submission) -> Tuple[bool, str]:
         if submission.subreddit.display_name.lower() in self.blacklist:
@@ -194,7 +188,7 @@ I'm a bot. Bleep bloop.{'  '}
             commented, msg = self.handle_submission(submission)
             if msg:
                 if getattr(logging, LOGLEVEL) <= logging.DEBUG:
-                    submission_dict = self.submission_to_dict(submission)
+                    submission_dict = dict(submission.__rich_repr__())
                     submission_dict.update({"msg": msg})
                     logger.debug(submission_dict)
                 else:
