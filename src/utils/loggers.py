@@ -4,6 +4,7 @@ import os
 from typing import Any, Callable, Generator, Tuple
 
 # Third party
+from praw.models import Comment, Submission
 from rich.logging import RichHandler
 
 
@@ -45,13 +46,11 @@ def rich_to_str(self) -> str:
     return "\n".join([format_pair(tup) for tup in self.__rich_repr__()])
 
 
-# from rich.console import Console
-# from rich.table import Table
-# table = Table(width=50, overflow='fold')
-# table.add_column()
-# table.add_column()
-# table.add_row("body", comment.body)
-# table.add_row("score", str(comment.score))
-# console = Console(record=True)
-# console.print(table)
-# s = console.export_text()
+def monkey_patch_praw_objs(reddit_url: str):
+    """
+    monkeypatch praw models for better logging
+    """
+    Submission.__rich_repr__ = generate_submission_rich_repr(reddit_url)
+    Submission.__str__ = rich_to_str
+    Comment.__rich_repr__ = comment_rich_repr
+    Comment.__str__ = rich_to_str

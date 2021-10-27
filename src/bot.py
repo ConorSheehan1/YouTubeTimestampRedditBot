@@ -9,19 +9,13 @@ from typing import Tuple
 # Third party
 import praw
 from dotenv import load_dotenv
-from praw.models import Comment, Submission
 from prawcore.exceptions import RequestException, ResponseException, ServerError
 from pytube import YouTube
 from requests.exceptions import ConnectionError, ReadTimeout
 
 # YouTubeTimestampRedditBot
 from src.data.subreddits import blacklist
-from src.utils.loggers import (
-    comment_rich_repr,
-    generate_submission_rich_repr,
-    rich_to_str,
-    setup_and_get_logger,
-)
+from src.utils.loggers import monkey_patch_praw_objs, setup_and_get_logger
 from src.utils.time_parsing import (
     TimestampParseError,
     convert_timestamp_to_seconds,
@@ -72,13 +66,7 @@ class Bot:
         else:
             login_kwargs["password"] = os.getenv("password")
         self.r = praw.Reddit(**login_kwargs)
-        # monkeypatch praw models for better logging
-        Submission.__rich_repr__ = generate_submission_rich_repr(
-            self.r.config.reddit_url
-        )
-        Submission.__str__ = rich_to_str
-        Comment.__rich_repr__ = comment_rich_repr
-        Comment.__str__ = rich_to_str
+        monkey_patch_praw_objs(self.r.config.reddit_url)
 
     def generate_footer(self) -> str:
         version = f"version {self.version}"
