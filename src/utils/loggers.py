@@ -17,7 +17,7 @@ def setup_and_get_logger(name: str, loglevel: str):
 def generate_submission_rich_repr(reddit_url: str) -> Callable:
     def submission_rich_repr(self):
         yield "id", self.id
-        yield "reddit_permalink", f"{reddit_url}{self.permalink}"
+        yield "permalink", f"{reddit_url}{self.permalink}"
         yield "title", self.title
         yield "url", self.url
 
@@ -40,7 +40,7 @@ def rich_to_str(self) -> str:
     def format_pair(pair: Tuple, just=16, indent=4) -> str:
         indented_bullet = " " * indent + "*"
         if pair[0] == "submission":
-            return f"{('* ' + pair[0] + ':').ljust(just + indent)}\n{str(pair[1]).replace('*', indented_bullet)}"
+            return f"{('* ' + pair[0] + ':')}\n{str(pair[1]).replace('*', indented_bullet)}"
         return f"{('* ' + pair[0] + ':').ljust(just)} {pair[1]}"
 
     return "\n".join([format_pair(tup) for tup in self.__rich_repr__()])
