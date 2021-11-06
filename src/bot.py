@@ -26,7 +26,7 @@ from src.utils.youtube import (
     is_youtube_url_without_timestamp,
 )
 
-__version__ = "2.3.0"
+__version__ = "2.4.0"
 LOGLEVEL = os.environ.get("log_level", "INFO").upper()
 logger = setup_and_get_logger("bot.py", LOGLEVEL)
 

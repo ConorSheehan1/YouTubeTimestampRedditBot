@@ -16,7 +16,7 @@ class TestBot(unittest.TestCase):
         expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s{'  '}
 ******************************************{'  '}
 I'm a bot, bleep bloop.{'  '}
-[source](test) | [issues](test/issues) | version 2.3.0
+[source](test) | [issues](test/issues) | version 2.4.0
 """
         actual = Bot(git_repo="test").generate_comment("http://youtu.be/foo?t-1m2s")
         assert expected == actual
@@ -25,7 +25,7 @@ I'm a bot, bleep bloop.{'  '}
         expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s{'  '}
 ******************************************{'  '}
 I'm a bot, bleep bloop.{'  '}
-version 2.3.0
+version 2.4.0
 """
         actual = Bot().generate_comment("http://youtu.be/foo?t-1m2s")
         assert expected == actual
