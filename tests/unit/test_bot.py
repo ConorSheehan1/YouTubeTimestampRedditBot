@@ -13,18 +13,18 @@ from tests.mocks import MockComment
 
 class TestBot(unittest.TestCase):
     def test_generate_comment_with_git_repo(self):
-        expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s
+        expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s{'  '}
 ******************************************{'  '}
-I'm a bot. Bleep bloop.{'  '}
-[source](test) | version 2.3.0
+I'm a bot, bleep bloop.{'  '}
+[source](test) | [issues](test/issues) | version 2.3.0
 """
         actual = Bot(git_repo="test").generate_comment("http://youtu.be/foo?t-1m2s")
         assert expected == actual
 
     def test_generate_comment_without_git_repo(self):
-        expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s
+        expected = f"""Link that starts at the time OP mentioned: http://youtu.be/foo?t-1m2s{'  '}
 ******************************************{'  '}
-I'm a bot. Bleep bloop.{'  '}
+I'm a bot, bleep bloop.{'  '}
 version 2.3.0
 """
         actual = Bot().generate_comment("http://youtu.be/foo?t-1m2s")

@@ -9,7 +9,7 @@ Sourecode for [u/YouTubeTimestampBot](https://www.reddit.com/user/YouTubeTimesta
 
 `YouTubeTimestampRedditBot` is a bot that searches [Reddit](https://www.reddit.com/) for posts which: 
 1. link to [YouTube](https://www.youtube.com/)
-2. reference a timestamp
+2. reference a timestamp in the title
 3. don't embed the timestamp in the link
 
 It comments on those posts with an updated link that has the timestamp embedded, hopefully saving people precious milliseconds navigating to the time in the video.
