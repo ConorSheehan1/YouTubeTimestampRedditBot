@@ -9,6 +9,7 @@ from typing import Tuple
 # Third party
 import praw
 from dotenv import load_dotenv
+from praw.models import Comment, Submission
 from prawcore.exceptions import RequestException, ResponseException, ServerError
 from pytube import YouTube
 from requests.exceptions import ConnectionError, ReadTimeout
@@ -38,6 +39,7 @@ class Bot:
         connection_retry_wait_time: int = 1,
         comment_wait_time: int = 10,
         check_bad_comment_wait_time: int = 10,
+        batch_submission_limit: int = 1000,
         git_repo: str = "",
     ):
         self.blacklist = blacklist
@@ -47,6 +49,7 @@ class Bot:
         self.connection_retry_wait_time = connection_retry_wait_time
         self.comment_wait_time = comment_wait_time
         self.check_bad_comment_wait_time = check_bad_comment_wait_time
+        self.batch_submission_limit = batch_submission_limit
         self.git_repo = git_repo
         self.last_commented = datetime.now()
         self.last_checked_bad_comments = datetime.now()
@@ -90,19 +93,19 @@ I'm a bot, bleep bloop.{'  '}
                 self.r.redditor(self.username).message(reason_to_delete, str(comment))
                 comment.delete()
 
-    def should_delete_comment(self, comment) -> str:
+    def should_delete_comment(self, comment: Comment) -> str:
         if comment.score < 1:
             return f"Deleting comment with low score {comment.score}"
         if any(["bad bot" in reply.body.lower() for reply in comment.replies]):
             return "Deleting comment with 'bad bot' reply"
         return ""
 
-    def already_commented(self, submission) -> bool:
+    def already_commented(self, submission: Submission) -> bool:
         return any(
             [comment.author.name == self.username for comment in submission.comments]
         )
 
-    def parse_submission(self, submission) -> Tuple[bool, str]:
+    def parse_submission(self, submission: Submission) -> Tuple[bool, str]:
         """check if submission meets bot criteria, and if it does, comment on the submission."""
         if submission.subreddit.display_name.lower() in self.blacklist:
             return False, "subreddit in blacklist"
@@ -170,7 +173,7 @@ I'm a bot, bleep bloop.{'  '}
             logger.info(self.stream_log)
             self.stream_log = ""
 
-    def handle_submission(self, submission):
+    def handle_submission(self, submission: Submission):
         self.append_to_stream_log("-")
         commented, msg = self.parse_submission(submission)
         if msg:
@@ -190,10 +193,12 @@ I'm a bot, bleep bloop.{'  '}
         for submission in self.r.subreddit("all").stream.submissions():
             self.handle_submission(submission)
 
-    def batch_rising_submissions(self, number_of_submissions: int = 1000):
+    def batch_rising_submissions(self):
         """parse a set number of rising submissions. used with cron"""
         self.login()
-        for submission in self.r.subreddit("all").rising(limit=number_of_submissions):
+        for submission in self.r.subreddit("all").rising(
+            limit=self.batch_submission_limit
+        ):
             self.handle_submission(submission)
 
     def parse_specific_submission(self, reddit_post_url: str):
@@ -205,6 +210,7 @@ I'm a bot, bleep bloop.{'  '}
         retries = 0
         while retries < self.connection_retry_limit:
             try:
+                # note if connection fails may parse more than batch_submission_limit
                 self.batch_rising_submissions()
             except (
                 RequestException,
@@ -227,11 +233,13 @@ if __name__ == "__main__":
     # can hit api limits if < 10
     COMMENT_WAIT_TIME = int(os.getenv("comment_wait_time", 10))
     CHECK_BAD_COMMENT_WAIT_TIME = int(os.getenv("check_bad_comment_wait_time", 10))
+    BATCH_SUBMISSION_LIMIT = int(os.getenv("batch_submission_limit", 1000))
     GIT_REPO = os.getenv("git_repo", "")
     Bot(
-        CONNECTION_RETRY_LIMIT,
-        CONNECTION_RETRY_WAIT_TIME,
-        COMMENT_WAIT_TIME,
-        CHECK_BAD_COMMENT_WAIT_TIME,
-        GIT_REPO,
+        connection_retry_limit=CONNECTION_RETRY_LIMIT,
+        connection_retry_wait_time=CONNECTION_RETRY_WAIT_TIME,
+        comment_wait_time=COMMENT_WAIT_TIME,
+        check_bad_comment_wait_time=CHECK_BAD_COMMENT_WAIT_TIME,
+        batch_submission_limit=BATCH_SUBMISSION_LIMIT,
+        git_repo=GIT_REPO,
     ).main()
