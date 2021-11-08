@@ -26,6 +26,7 @@ taskipy = "^1.8.2"
 pre-commit = "^2.15.0"
 detect-secrets = "^1.1.0"
 freezegun = "^1.1.0"
+pdbr = "^0.6.6"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
