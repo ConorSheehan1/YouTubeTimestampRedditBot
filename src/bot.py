@@ -194,7 +194,7 @@ I'm a bot, bleep bloop.{'  '}
             self.handle_submission(submission)
 
     def batch_rising_submissions(self):
-        """parse a set number of rising submissions. used with cron"""
+        """parse a set number of rising submissions. use with cron"""
         self.login()
         for submission in self.r.subreddit("all").rising(
             limit=self.batch_submission_limit
@@ -210,8 +210,7 @@ I'm a bot, bleep bloop.{'  '}
         retries = 0
         while retries < self.connection_retry_limit:
             try:
-                # note if connection fails may parse more than batch_submission_limit
-                self.batch_rising_submissions()
+                self.stream_new_submissions()
             except (
                 RequestException,
                 ResponseException,

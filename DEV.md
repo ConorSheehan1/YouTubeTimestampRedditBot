@@ -95,6 +95,10 @@ heroku config:set refresh_token=$refresh_token
 
 Note commits to main branch are automatically deployed using heroku pipeline.
 
+## Heroku scheduler
+would be useful to run batches in cron, but need to add creditcard to use heroku scheduler / any add-on.
+revolute didn't work.
+
 # Design
 This bot has been designed to avoid external dependencies.
 It currently relies on python, its packages, and a reddit account.
