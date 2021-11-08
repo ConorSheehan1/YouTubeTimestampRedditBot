@@ -6,7 +6,6 @@ from unittest.mock import patch
 from src.utils.loggers import (
     comment_rich_repr,
     generate_submission_rich_repr,
-    monkey_patch_praw_objs,
     rich_to_str,
 )
 from tests.mocks import MockComment, MockSubmission

@@ -1,0 +1,8 @@
+{
+  "debug with pdbr (rich)": {
+    "prefix": ["debug", "pdb", "pdbr"],
+    "body": "import pdbr; pdbr.set_trace()",
+    "description": "Debug with pdbr (rich",
+    "scope": "python"
+  }
+}

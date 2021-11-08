@@ -139,6 +139,8 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "thing at 3:00 midday", "expected_output": False},
             {"input": "thing at 3:00 jst", "expected_output": False},
             {"input": "thing at 3:00 EST", "expected_output": False},
+            {"input": "thing at 11:30 at night", "expected_output": False},
+            {"input": "thing at 3:00 in the morning", "expected_output": False},
             # no space and also timezone
             {"input": "thing at 3:00PST", "expected_output": False},
             # time zone first word
