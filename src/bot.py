@@ -102,7 +102,8 @@ I'm a bot, bleep bloop.{'  '}
             [comment.author.name == self.username for comment in submission.comments]
         )
 
-    def handle_submission(self, submission) -> Tuple[bool, str]:
+    def parse_submission(self, submission) -> Tuple[bool, str]:
+        """check if submission meets bot criteria, and if it does, comment on the submission."""
         if submission.subreddit.display_name.lower() in self.blacklist:
             return False, "subreddit in blacklist"
         if submission.subreddit.user_is_banned:
@@ -169,27 +170,42 @@ I'm a bot, bleep bloop.{'  '}
             logger.info(self.stream_log)
             self.stream_log = ""
 
-    def stream_all_subreddits(self):
+    def handle_submission(self, submission):
+        self.append_to_stream_log("-")
+        commented, msg = self.parse_submission(submission)
+        if msg:
+            if getattr(logging, LOGLEVEL) <= logging.DEBUG:
+                submission_dict = dict(submission.__rich_repr__())
+                submission_dict.update({"msg": msg})
+                logger.debug(submission_dict)
+            else:
+                self.append_to_stream_log(".")
+        if commented:
+            self.handle_comment_sleep()
+        self.handle_delete_bad_comments()
+
+    def stream_new_submissions(self):
+        """continuosly stream new submissions to all subreddits"""
         self.login()
         for submission in self.r.subreddit("all").stream.submissions():
-            self.append_to_stream_log("-")
-            commented, msg = self.handle_submission(submission)
-            if msg:
-                if getattr(logging, LOGLEVEL) <= logging.DEBUG:
-                    submission_dict = dict(submission.__rich_repr__())
-                    submission_dict.update({"msg": msg})
-                    logger.debug(submission_dict)
-                else:
-                    self.append_to_stream_log(".")
-            if commented:
-                self.handle_comment_sleep()
-            self.handle_delete_bad_comments()
+            self.handle_submission(submission)
+
+    def batch_rising_submissions(self, number_of_submissions: int = 1000):
+        """parse a set number of rising submissions. used with cron"""
+        self.login()
+        for submission in self.r.subreddit("all").rising(limit=number_of_submissions):
+            self.handle_submission(submission)
+
+    def parse_specific_submission(self, reddit_post_url: str):
+        self.login()
+        submission = self.r.submission(url=reddit_post_url)
+        self.parse_submission(submission)
 
     def main(self):
         retries = 0
         while retries < self.connection_retry_limit:
             try:
-                self.stream_all_subreddits()
+                self.batch_rising_submissions()
             except (
                 RequestException,
                 ResponseException,
@@ -201,11 +217,6 @@ I'm a bot, bleep bloop.{'  '}
                 logger.error(f"Error:\n{e}")
                 logger.info(f"Retrying in {self.connection_retry_wait_time} minute(s).")
                 time.sleep(self.connection_retry_wait_time * 60)
-
-    def handle_specific_submission(self, reddit_post_url: str):
-        self.login()
-        submission = self.r.submission(url=reddit_post_url)
-        self.handle_submission(submission)
 
 
 if __name__ == "__main__":
