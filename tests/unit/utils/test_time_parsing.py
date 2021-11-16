@@ -120,6 +120,7 @@ class TestTimeParsing(unittest.TestCase):
             # excluded prefixes
             {"input": "1:20 scale", "expected_output": False},
             {"input": "beaten in under 3:00", "expected_output": False},
+            {"input": "until 3:00 I talk about x", "expected_output": False},
             {"input": "finished in less than 3:00", "expected_output": False},
             {"input": "done in 3:00", "expected_output": False},
             {"input": "first sub 3:00 lap", "expected_output": False},

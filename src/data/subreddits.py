@@ -68,4 +68,6 @@ blacklist = [
     "conspiracy",
     # handle timestamp in youtube title
     "dauntless",
+    # timestamps usually not a skip point
+    "speedrun",
 ]
