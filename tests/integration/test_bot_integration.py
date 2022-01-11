@@ -3,7 +3,13 @@ import unittest
 
 # YouTubeTimestampRedditBot
 from src.bot import Bot
-from tests.mocks import MockSubmission, MockSubreddit
+from tests.mocks import MockSubmission, MockSubreddit, Struct
+
+
+def create_bot():
+    b = Bot()
+    b.r = Struct(**{"redditor": lambda x: Struct(**{"comment_karma": 1000})})
+    return b
 
 
 class TestBotIntegration(unittest.TestCase):
@@ -13,7 +19,7 @@ class TestBotIntegration(unittest.TestCase):
             title="Resident Evil 3 Mercenaries - Mikhail A Rank 21:03",
             url="https://www.youtube.com/watch?v=bG4gZ8hXS0M",
         )
-        assert Bot().parse_submission(submission) == (
+        assert create_bot().parse_submission(submission) == (
             False,
             "timestamp in youtube title",
         )
@@ -24,7 +30,18 @@ class TestBotIntegration(unittest.TestCase):
             title="Resident Evil 3 Mercenaries - Mikhail A Rank 24:37",
             url="https://www.youtube.com/watch?v=bG4gZ8hXS0M",
         )
-        assert Bot().parse_submission(submission) == (
+        assert create_bot().parse_submission(submission) == (
             False,
             "timestamp at or beyond yt bounds",
+        )
+
+    def test_min_karma_requirement(self):
+        submission = MockSubmission(
+            title="foo at 12:34",
+            url="https://www.youtube.com/watch?v=bG4gZ8hXS0M",
+            subreddit_display_name="Superstonk",
+        )
+        assert create_bot().parse_submission(submission) == (
+            False,
+            "need 1200 karma to post in superstonk, only have 1000",
         )

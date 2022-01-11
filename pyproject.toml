@@ -35,6 +35,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.taskipy.tasks]
 ci_lint = "black --check ."
 ci_isort = "isort --check --diff ."
+fix_all = "task lint && task isort"
 isort = 'isort .'
 lint = "black ."
 tests = "python -m pytest tests"

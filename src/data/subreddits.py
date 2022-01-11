@@ -71,3 +71,5 @@ blacklist = [
     # timestamps usually not a skip point
     "speedrun",
 ]
+
+min_karma_dict = {"superstonk": 1200}
