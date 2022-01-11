@@ -13,13 +13,13 @@ class MockSubmission:
         self,
         title: str,
         url: str,
-        display_name: str = "foo",
+        subreddit_display_name: str = "foo",
         user_is_banned: bool = False,
     ):
         self.id = "test_submission"
         self.title = title
         self.url = url
-        self.subreddit = MockSubreddit(display_name, user_is_banned)
+        self.subreddit = MockSubreddit(subreddit_display_name, user_is_banned)
         self.permalink = "test_permalink"
 
     def reply(*args):

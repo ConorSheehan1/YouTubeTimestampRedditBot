@@ -15,7 +15,7 @@ from pytube import YouTube
 from requests.exceptions import ConnectionError, ReadTimeout
 
 # YouTubeTimestampRedditBot
-from src.data.subreddits import blacklist
+from src.data.subreddits import blacklist, min_karma_dict
 from src.utils.loggers import monkey_patch_praw_objs, setup_and_get_logger
 from src.utils.time_parsing import (
     TimestampParseError,
@@ -43,6 +43,7 @@ class Bot:
         git_repo: str = "",
     ):
         self.blacklist = blacklist
+        self.min_karma_dict = min_karma_dict
         self.username = "YouTubeTimestampBot"
         self.version = __version__
         self.connection_retry_limit = connection_retry_limit
@@ -107,10 +108,19 @@ I'm a bot, bleep bloop.{'  '}
 
     def parse_submission(self, submission: Submission) -> Tuple[bool, str]:
         """check if submission meets bot criteria, and if it does, comment on the submission."""
-        if submission.subreddit.display_name.lower() in self.blacklist:
+        subreddit_name = submission.subreddit.display_name.lower()
+        min_karma_requirement = self.min_karma_dict.get(subreddit_name, 0)
+        comment_karma = self.r.redditor(self.username).comment_karma
+        if subreddit_name in self.blacklist:
             return False, "subreddit in blacklist"
         if submission.subreddit.user_is_banned:
             return False, "user is banned"
+        # assume bot only ever gets comment karma, since it doesn't create posts
+        if min_karma_requirement > comment_karma:
+            return (
+                False,
+                f"need {min_karma_requirement} karma to post in {subreddit_name}, only have {comment_karma}",
+            )
         if not is_youtube_url_without_timestamp(submission.url):
             return False, ""
         try:
