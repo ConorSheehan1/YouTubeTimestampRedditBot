@@ -2,6 +2,11 @@
 from typing import List
 
 
+class Struct:
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
+
+
 class MockSubreddit:
     def __init__(self, display_name: str, user_is_banned: bool):
         self.display_name = display_name
