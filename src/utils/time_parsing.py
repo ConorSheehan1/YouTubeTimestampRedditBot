@@ -12,6 +12,7 @@ from src.data.time_zones import time_zone_codes, time_zone_first_words
 
 # note: lowercase for case insensitive match
 excluded_prefixes = [
+    "before",
     "under",
     "until",
     "less than",

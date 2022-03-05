@@ -118,7 +118,7 @@ class TestTimeParsing(unittest.TestCase):
                 "expected_output": False,
             },  # r/documentaries format
             # excluded prefixes
-            {"input": "1:20 scale", "expected_output": False},
+            {"input": "thing happens before 3:00", "expected_output": False},
             {"input": "beaten in under 3:00", "expected_output": False},
             {"input": "until 3:00 I talk about x", "expected_output": False},
             {"input": "finished in less than 3:00", "expected_output": False},
@@ -131,6 +131,7 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "broke 3:00 record", "expected_output": False},
             {"input": "broke the 3:00 barrier", "expected_output": False},
             # excluded suffixes
+            {"input": "1:20 scale", "expected_output": False},
             {"input": "thing at 3:00 live", "expected_output": False},
             {"input": "thing at 3:00 pm", "expected_output": False},
             {"input": "thing at 3:00 PM", "expected_output": False},
