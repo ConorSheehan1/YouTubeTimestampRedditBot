@@ -134,8 +134,11 @@ I'm a bot, bleep bloop.{'  '}
             return False, "no timestamp in reddit title"
         timestamp, raw_timestamp = reddit_title_timestamp
         yt_metadata = YouTube(submission.url)
-        if convert_timestamp_to_seconds(raw_timestamp) >= yt_metadata.length:
-            return False, "timestamp at or beyond yt bounds"
+        # add 3 second buffer for human error when putting video length in title
+        if (title_time := convert_timestamp_to_seconds(raw_timestamp)) >= (
+            yt_time := yt_metadata.length - 3
+        ):
+            return False, f"timestamp {title_time} at or beyond yt bounds {yt_time}"
         if raw_timestamp in yt_metadata.title:
             return False, "timestamp in youtube title"
         if self.already_commented(submission):

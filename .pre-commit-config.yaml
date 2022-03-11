@@ -1,6 +1,11 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 # TODO: switch to actual githook script, failed build because of difference between mypy and mirror
+
+# https://pre-commit.com/#overriding-language-version
+default_language_version:
+    python: "3.9"
+
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
@@ -16,7 +21,7 @@ repos:
       - id: isort
         name: isort (python)
 -   repo: https://github.com/psf/black
-    rev: 19.3b0
+    rev: 21.9b0
     hooks:
     -   id: black
 -   repo: https://github.com/pre-commit/mirrors-mypy

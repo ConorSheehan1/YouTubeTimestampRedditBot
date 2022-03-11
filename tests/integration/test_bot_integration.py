@@ -32,7 +32,20 @@ class TestBotIntegration(unittest.TestCase):
         )
         assert create_bot().parse_submission(submission) == (
             False,
-            "timestamp at or beyond yt bounds",
+            "timestamp 1477 at or beyond yt bounds 1474",
+        )
+
+    def test_parse_submission_timestamp_threshold(self):
+        # https://old.reddit.com/r/AntiMSM/comments/tbe86i/russia_says_west_has_defaulted_on_financial/
+        submission = MockSubmission(
+            title="Alexander Mercouris | 22:30",
+            url="https://www.youtube.com/watch?v=7jmEMacRaBk",
+        )
+        # even though timestamp is less than video length, it's too close to the end.
+        # length is 22:32 -> 1351 - 3 = 1349
+        assert create_bot().parse_submission(submission) == (
+            False,
+            "timestamp 1350 at or beyond yt bounds 1349",
         )
 
     def test_min_karma_requirement(self):
