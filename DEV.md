@@ -8,9 +8,10 @@ poetry install
 ```bash
 poetry run python -m src/bot
 # note: running src/bot.py directly will not work, since there a sibling modules which rely on each other (src.utils imports src.data)
+# you may also need to include PYTHONPATH=$(pwd)
 # 1. if you don't have a refresh_token run `poetry run task obtain_refresh_token`
 # 2. add environment variables to the .env file, or pass them directly. e.g.
-refresh_token="token" client_secret='$secret' client_id='$id' poetry run python -m src/bot
+PYTHONPATH=$(pwd) refresh_token="token" client_secret='$secret' client_id='$id' poetry run python -m src/bot
 ```
 
 ## Environment variables

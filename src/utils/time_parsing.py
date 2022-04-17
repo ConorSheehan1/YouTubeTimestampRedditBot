@@ -114,8 +114,9 @@ def get_title_time(title: str) -> Union[Tuple[str, Any], Literal[False]]:
     # ((?:[0-2]?[0-9]:)?) optional hours up to 29 (over 23 caught by is_valid_time)
     hh_mm_ss = r"(((?:[0-2]?[0-9]:)?)([0-5]?[0-9]):[0-5][0-9])"
     space_punctuation_or_end = r"(?=\s|\.\s|\,\s|$)"
-    hh_mm_ss_regex = f"{space_or_start}{hh_mm_ss}{space_punctuation_or_end}"
-    numeric_timestamp = regex.search(hh_mm_ss_regex, title)
+    hh_mm_ss_wrapped = f"{space_or_start}{hh_mm_ss}{space_punctuation_or_end}"
+    all_possible_timestamps = regex.findall(hh_mm_ss, title)
+    numeric_timestamp = regex.search(hh_mm_ss_wrapped, title)
     if not numeric_timestamp:
         return False
     if has_excluded_prefix(title, numeric_timestamp):
@@ -123,6 +124,9 @@ def get_title_time(title: str) -> Union[Tuple[str, Any], Literal[False]]:
     if has_excluded_suffix(title, numeric_timestamp):
         return False
     raw_matched_timestamp = numeric_timestamp.group()
+    # if there are multiple timestamps, only choose the first one.
+    if raw_matched_timestamp != all_possible_timestamps[0][0]:
+        return False
     if not is_valid_time(raw_matched_timestamp):
         return False
     if convert_timestamp_to_seconds(raw_matched_timestamp) == 0:

@@ -72,6 +72,10 @@ class TestTimeParsing(unittest.TestCase):
                 "input": "Starting at like 3:14, this guy says dumb stuff.",
                 "expected_output": ("3m14s", "3:14"),
             },
+            {
+                "input": "Skip to 12:00",
+                "expected_output": ("12m0s", "12:00"),
+            },
             {"input": "The dude at 2:32.Not a timestamp", "expected_output": False},
             # multiple timestamps (always get first one)
             {
@@ -147,6 +151,11 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "thing at 3:00PST", "expected_output": False},
             # time zone first word
             {"input": "thing at 3:00 Eastern", "expected_output": False},
+            # time range
+            {
+                "input": "Antonio is riding the jaguar just after receiving his gift? (00:07 to 00:11 in this clip)",
+                "expected_output": False,
+            },
         ]
 
         for (i, d) in enumerate(dicts):
