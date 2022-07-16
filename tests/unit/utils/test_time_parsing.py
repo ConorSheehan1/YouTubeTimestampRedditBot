@@ -134,6 +134,8 @@ class TestTimeParsing(unittest.TestCase):
             {"input": "live in 3:00", "expected_output": False},
             {"input": "broke 3:00 record", "expected_output": False},
             {"input": "broke the 3:00 barrier", "expected_output": False},
+            {"input": "as seen on 7:30", "expected_output": False},
+            {"input": "ends at 3:00", "expected_output": False},
             # excluded suffixes
             {"input": "1:20 scale", "expected_output": False},
             {"input": "thing at 3:00 live", "expected_output": False},

@@ -13,22 +13,24 @@ from src.data.time_zones import time_zone_codes, time_zone_first_words
 # note: lowercase for case insensitive match
 excluded_prefixes = [
     "before",
-    "under",
-    "until",
-    "less than",
-    "sub",
-    "in",
-    "live",
-    "live at",
-    "episode",
     "broke",
     "broke the",
+    "ends at",
+    "episode",
+    "in",
+    "on",
+    "live",
+    "live at",
+    "less than",
+    "sub",
+    "under",
+    "until",
 ]
 # don't need variations of live for suffixes
 excluded_suffixes = [
     "am",
-    "pm",
     "a.m",
+    "pm",
     "p.m",
     "midday",
     "at night",
