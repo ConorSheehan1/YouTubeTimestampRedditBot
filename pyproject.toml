@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "youtubetimestampredditbot"
-version = "2.4.6"
+version = "2.4.7"
 description = ""
 authors = ["Conor Sheehan <conor.sheehan.dev@gmail.com>"]
 license = "MIT"
